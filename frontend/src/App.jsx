@@ -17,9 +17,17 @@ function MainApp() {
       <Header />
       <main style={{ maxWidth: 1240, margin: '0 auto', padding: '28px 24px 64px' }}>
         <TabBar active={activeTab} onChange={setActiveTab} />
-        {activeTab === 'eval'  && <EvalForm />}
-        {activeTab === 'proxy' && <ProxyLogs />}
-        {activeTab === 'data'  && <DataQuality />}
+        
+        {/* Keep all tabs mounted so state, prompt, eval results & history are 100% preserved when switching tabs */}
+        <div style={{ display: activeTab === 'eval' ? 'block' : 'none' }}>
+          <EvalForm />
+        </div>
+        <div style={{ display: activeTab === 'proxy' ? 'block' : 'none' }}>
+          <ProxyLogs />
+        </div>
+        <div style={{ display: activeTab === 'data' ? 'block' : 'none' }}>
+          <DataQuality />
+        </div>
       </main>
     </div>
   );
