@@ -1,7 +1,8 @@
 import time
 import uuid
 import os
-from fastapi import APIRouter, HTTPException, WebSocket, WebSocketDisconnect
+from typing import Optional
+from fastapi import APIRouter, HTTPException, WebSocket, WebSocketDisconnect, Header
 from pydantic import BaseModel
 from openai import OpenAI
 
@@ -225,7 +226,7 @@ _proxy_call_count: int = 0
 
 
 @router.post("/proxy/chat")
-async def proxy_chat(request: ProxyChatRequest):
+async def proxy_chat(request: ProxyChatRequest, x_openai_api_key: Optional[str] = Header(None)):
     """
     OpenAI-compatible proxy endpoint.
     Smart-samples evaluation: 1 in 5 requests (20%), always evaluates
@@ -268,8 +269,12 @@ async def proxy_chat(request: ProxyChatRequest):
         )
 
     # ── Call LLM ───────────────────────────────────
+    api_key = x_openai_api_key or os.getenv("OPENAI_API_KEY")
+    if not api_key:
+        raise HTTPException(status_code=400, detail="No OpenAI API key provided. Set it in the Header modal.")
+
     try:
-        client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+        client = OpenAI(api_key=api_key)
         completion = client.chat.completions.create(
             model=request.model,
             messages=[{"role": m.role, "content": m.content} for m in request.messages],

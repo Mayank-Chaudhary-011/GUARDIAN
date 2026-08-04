@@ -1,9 +1,18 @@
 const BASE = import.meta.env.VITE_API_BASE_URL || '';
 
+function getHeaders() {
+  const customKey = localStorage.getItem('guardian_openai_api_key');
+  const headers = { 'Content-Type': 'application/json' };
+  if (customKey && customKey.trim()) {
+    headers['X-OpenAI-Api-Key'] = customKey.trim();
+  }
+  return headers;
+}
+
 export async function runEval(inputText, outputText) {
   const res = await fetch(`${BASE}/eval`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: getHeaders(),
     body: JSON.stringify({ input_text: inputText, output_text: outputText }),
   });
   if (!res.ok) {
@@ -16,7 +25,7 @@ export async function runEval(inputText, outputText) {
 export async function improveOutput(inputText, outputText, issues) {
   const res = await fetch(`${BASE}/improve`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: getHeaders(),
     body: JSON.stringify({ input_text: inputText, output_text: outputText, issues }),
   });
   if (!res.ok) throw new Error(await res.text());
@@ -33,7 +42,7 @@ Return ONLY the improved question — no explanation, no prefix.`;
 
   const res = await fetch(`${BASE}/proxy/chat`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: getHeaders(),
     body: JSON.stringify({
       messages: [
         { role: 'system', content: systemPrompt },
@@ -67,7 +76,7 @@ export async function fetchProxyLogs(limit = 50) {
 export async function proxyChat(messages, model = 'gpt-4o-mini', evaluate = true) {
   const res = await fetch(`${BASE}/proxy/chat`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: getHeaders(),
     body: JSON.stringify({ messages, model, evaluate }),
   });
   if (!res.ok) {
@@ -80,7 +89,7 @@ export async function proxyChat(messages, model = 'gpt-4o-mini', evaluate = true
 export async function fetchMlopsAudit(records = []) {
   const res = await fetch(`${BASE}/data/mlops-audit`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: getHeaders(),
     body: JSON.stringify({ records }),
   });
   if (!res.ok) throw new Error(await res.text());
