@@ -215,7 +215,7 @@ export default function DataQuality() {
           <div>
             <textarea
               rows={4}
-              style={{ minHeight: 96, fontSize: 12 }}
+              style={{ minHeight: 96, fontSize: 12, fontFamily: 'Consolas, Monaco, monospace' }}
               placeholder="Or paste CSV content here (including header row)..."
               value={paste}
               onChange={e => setPaste(e.target.value)}
@@ -358,11 +358,11 @@ export default function DataQuality() {
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginTop: 4, fontSize: 11.5 }}>
                     <div>
                       <span style={{ color: 'var(--muted-up)' }}>Train Acc:</span>{' '}
-                      <strong style={{ color: '#fff' }}>{b.train_accuracy}%</strong>
+                      <strong style={{ color: '#fff' }}>{Number(b.train_accuracy).toFixed(1)}%</strong>
                     </div>
                     <div>
                       <span style={{ color: 'var(--muted-up)' }}>Test Acc:</span>{' '}
-                      <strong style={{ color: '#10b981' }}>{b.test_accuracy}%</strong>
+                      <strong style={{ color: '#10b981' }}>{Number(b.test_accuracy).toFixed(1)}%</strong>
                     </div>
                   </div>
                 </div>
@@ -389,13 +389,13 @@ export default function DataQuality() {
                 {mlopsResult.benchmarks.map(b => (
                   <tr key={b.model}>
                     <td style={{ fontWeight: 700, color: '#f1f5f9' }}>{b.model}</td>
-                    <td>{b.train_accuracy}%</td>
-                    <td style={{ fontWeight: 700, color: '#10b981' }}>{b.test_accuracy}%</td>
-                    <td>{b.precision}%</td>
-                    <td>{b.recall}%</td>
-                    <td style={{ fontWeight: 700, color: '#60a5fa' }}>{b.f1_score}%</td>
+                    <td>{Number(b.train_accuracy).toFixed(1)}%</td>
+                    <td style={{ fontWeight: 700, color: '#10b981' }}>{Number(b.test_accuracy).toFixed(1)}%</td>
+                    <td>{Number(b.precision).toFixed(1)}%</td>
+                    <td>{Number(b.recall).toFixed(1)}%</td>
+                    <td style={{ fontWeight: 700, color: '#60a5fa' }}>{Number(b.f1_score).toFixed(1)}%</td>
                     <td style={{ color: b.overfit_gap_pct > 8 ? '#f43f5e' : '#94a3b8' }}>
-                      {b.overfit_gap_pct}%
+                      {Number(b.overfit_gap_pct).toFixed(1)}%
                     </td>
                     <td>
                       <span style={{ fontSize: 11, fontWeight: 700, color: b.status.includes('OPTIMAL') ? '#10b981' : '#fbbf24' }}>
