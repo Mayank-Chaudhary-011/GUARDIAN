@@ -93,6 +93,7 @@ export default function EvalForm() {
   };
 
   const handleImprovePrompt = async () => {
+    if (!input.trim()) return;
     setImprovingPrompt(true);
     try {
       const rewritten = await improvePrompt(input, result?.issues ?? []);
@@ -114,8 +115,6 @@ export default function EvalForm() {
     if (improvedPrompt) { setInput(improvedPrompt); setImprovedPrompt(null); }
   };
 
-  const isFail = result?.final_verdict === 'FAIL';
-
   return (
     <div ref={formRef} style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
       {/* ── Two-column main section ── */}
@@ -126,11 +125,28 @@ export default function EvalForm() {
           <div className="sec-label">Evaluate AI Output</div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
 
-            {/* Prompt textarea */}
+            {/* Prompt textarea + Rewrite header */}
             <div>
-              <label style={{ display: 'block', fontSize: 11.5, fontWeight: 500, color: 'var(--muted-up)', marginBottom: 7 }}>
-                Question / Prompt
-              </label>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 7 }}>
+                <label style={{ fontSize: 11.5, fontWeight: 500, color: 'var(--muted-up)' }}>
+                  Question / Prompt
+                </label>
+                {input.trim() && !improvedPrompt && (
+                  <button
+                    onClick={handleImprovePrompt}
+                    disabled={improvingPrompt}
+                    style={{
+                      background: 'none', border: 'none', color: '#a78bfa',
+                      fontSize: 11, fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4
+                    }}
+                  >
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
+                    </svg>
+                    {improvingPrompt ? 'Rewriting Question…' : 'Optimize Question'}
+                  </button>
+                )}
+              </div>
               <textarea
                 id="prompt-input"
                 rows={4}
@@ -198,21 +214,11 @@ export default function EvalForm() {
               </button>
             </div>
 
-            {/* Improve Prompt — visible after FAIL */}
-            {isFail && !improvedPrompt && (
-              <button className="prompt-btn" disabled={improvingPrompt} onClick={handleImprovePrompt}>
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
-                </svg>
-                {improvingPrompt ? 'Rewriting prompt…' : 'Improve the Prompt (Rewrite Question)'}
-              </button>
-            )}
-
             {/* Improved Prompt result */}
             {improvedPrompt && (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                 <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--purple)', letterSpacing: 1.5, textTransform: 'uppercase' }}>
-                  Improved Prompt
+                  Optimized Prompt (High Clarity)
                 </div>
                 <div className="improved-block prompt">
                   {improvedPrompt}
@@ -226,7 +232,7 @@ export default function EvalForm() {
                     <polyline points="9 11 12 14 22 4"/>
                     <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
                   </svg>
-                  Use this prompt
+                  Use this prompt as question
                 </button>
               </div>
             )}
@@ -244,13 +250,13 @@ export default function EvalForm() {
             </div>
           </div>
 
-          {/* Improve Output — visible after FAIL */}
-          {isFail && !improvedOut && (
+          {/* Improve Output — ALWAYS visible after ANY evaluation result */}
+          {result && !improvedOut && (
             <button className="improve-btn" disabled={improvingOut} onClick={handleImproveOutput}>
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="m3 11 19-9-9 19-2-8-8-2z"/>
               </svg>
-              {improvingOut ? 'Improving with AI…' : 'Improve AI Output'}
+              {improvingOut ? 'Optimizing AI Response with AI…' : 'Optimize AI Response & Token Cost'}
             </button>
           )}
 
@@ -259,7 +265,7 @@ export default function EvalForm() {
             <div className="card" style={{ padding: 18 }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
                 <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--green)', letterSpacing: 2, textTransform: 'uppercase' }}>
-                  ✓ Improved Output
+                  ✓ Token-Optimized AI Output
                 </div>
                 <div style={{ fontSize: 11, fontWeight: 600, color: '#60a5fa', background: 'rgba(59,130,246,0.12)', padding: '3px 10px', borderRadius: 12, border: '1px solid rgba(59,130,246,0.25)' }}>
                   ⚡ {improvedOut.new_tokens || 0} tokens {improvedOut.tokens_saved > 0 ? `(Saved ${improvedOut.tokens_saved} tok)` : '(Token-Optimized)'}
@@ -282,7 +288,7 @@ export default function EvalForm() {
       {/* Metrics — shown after a result */}
       {result && <MetricsRow result={result} />}
 
-      {/* ── Recent Evaluations (Matching Screenshot 1) ── */}
+      {/* ── Recent Evaluations ── */}
       {history.length > 0 && (
         <div className="card">
           <div className="sec-label">Recent Evaluations</div>
