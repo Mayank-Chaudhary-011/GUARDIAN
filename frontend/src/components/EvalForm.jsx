@@ -7,6 +7,28 @@ import MetricsRow from './MetricsRow';
 
 const PIPELINE_STEPS = ['input', 'accuracy', 'relevance', 'complete', 'adjudicator', 'verdict'];
 
+/* ── Sample presets ── */
+const SAMPLES = [
+  {
+    input: 'How do I fix an asyncio connection reset error in Python?',
+    output: 'An asyncio connection reset usually means the remote end closed the connection unexpectedly. To fix it: (1) Wrap your coroutine in a try/except for asyncio.IncompleteReadError and ConnectionResetError. (2) Add a reconnect loop with exponential backoff using asyncio.sleep. (3) Check if the server has a keep-alive timeout — set SO_KEEPALIVE on the socket. (4) If using aiohttp, use connector=aiohttp.TCPConnector(keepalive_timeout=30). This covers 95% of production cases.'
+  },
+  {
+    input: 'Compare Redis vs PostgreSQL for session caching in a high-traffic API',
+    output: 'Redis wins for pure session caching: sub-millisecond reads, built-in TTL, and horizontal scaling via Redis Cluster. PostgreSQL can handle it but adds query overhead and lacks native TTL — you need a cron job to purge expired rows. For 10k+ RPS, Redis is the clear choice. Use Postgres only if you need ACID guarantees on session data or already have it in your stack and traffic is moderate (<1k RPS).'
+  },
+  {
+    input: 'Explain the Python GIL and when it causes real performance problems',
+    output: 'The GIL (Global Interpreter Lock) prevents multiple native threads from executing Python bytecode simultaneously. It causes real problems in CPU-bound workloads — e.g., image processing or ML inference in pure Python — because threads cannot run in parallel. It does NOT hurt I/O-bound code (network, disk) because the GIL is released during I/O waits. Solutions: use multiprocessing for CPU tasks, or libraries like NumPy that release the GIL internally.'
+  },
+  {
+    input: 'What are the best practices for securing a REST API?',
+    output: 'Key REST API security practices: (1) Always use HTTPS — never plain HTTP. (2) Authenticate with short-lived JWTs (15-min access, 7-day refresh). (3) Validate and sanitize all input — never trust client data. (4) Rate-limit endpoints (e.g., 100 req/min per IP). (5) Use CORS allowlists, not wildcards. (6) Never expose stack traces in error responses. (7) Log all auth failures and alert on anomalies. (8) Use RBAC for authorization — least privilege always.'
+  },
+];
+
+let sampleIdx = 0;
+
 export default function EvalForm() {
   const [input,    setInput]    = useState('');
   const [output,   setOutput]   = useState('');
@@ -111,6 +133,16 @@ export default function EvalForm() {
     setPassedNodes([]); setActiveNode(null);
   };
 
+  const loadSample = () => {
+    const s = SAMPLES[sampleIdx % SAMPLES.length];
+    sampleIdx++;
+    setInput(s.input);
+    setOutput(s.output);
+    setResult(null); setError(null);
+    setImprovedOut(null); setImprovedPrompt(null);
+    setPassedNodes([]); setActiveNode(null);
+  };
+
   const useImprovedPrompt = () => {
     if (improvedPrompt) { setInput(improvedPrompt); setImprovedPrompt(null); }
   };
@@ -122,7 +154,16 @@ export default function EvalForm() {
 
         {/* ── LEFT: Input Panel ── */}
         <div className="card">
-          <div className="sec-label">Evaluate AI Output</div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 18 }}>
+            <div className="sec-label" style={{ marginBottom: 0 }}>Evaluate AI Output</div>
+            <button className="clear-btn" onClick={loadSample} style={{ fontSize: 11, display: 'flex', alignItems: 'center', gap: 5 }}>
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/>
+                <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
+              </svg>
+              Load Sample
+            </button>
+          </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
 
             {/* Prompt textarea + Rewrite header */}
