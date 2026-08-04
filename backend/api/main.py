@@ -13,10 +13,19 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],        # Restrict to your domain in production
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+@app.get("/")
+def root():
+    return {
+        "service": "GUARDIAN AI Quality Command Center",
+        "status": "online",
+        "health": "/health",
+        "docs": "/docs"
+    }
 
 app.include_router(router)

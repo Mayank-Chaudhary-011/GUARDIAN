@@ -1,5 +1,11 @@
 {
   "rewrites": [
+    { "source": "/eval", "destination": "https://guardian-gvq5.onrender.com/eval" },
+    { "source": "/improve", "destination": "https://guardian-gvq5.onrender.com/improve" },
+    { "source": "/stats", "destination": "https://guardian-gvq5.onrender.com/stats" },
+    { "source": "/regression", "destination": "https://guardian-gvq5.onrender.com/regression" },
+    { "source": "/proxy/(.*)", "destination": "https://guardian-gvq5.onrender.com/proxy/$1" },
+    { "source": "/health", "destination": "https://guardian-gvq5.onrender.com/health" },
     { "source": "/(.*)", "destination": "/index.html" }
   ]
 }

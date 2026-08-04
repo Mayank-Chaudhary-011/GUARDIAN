@@ -1,7 +1,7 @@
-// All paths proxy through Vite → FastAPI (no /api prefix needed)
+const BASE = import.meta.env.VITE_API_BASE_URL || '';
 
 export async function runEval(inputText, outputText) {
-  const res = await fetch(`/eval`, {
+  const res = await fetch(`${BASE}/eval`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ input_text: inputText, output_text: outputText }),
@@ -14,7 +14,7 @@ export async function runEval(inputText, outputText) {
 }
 
 export async function improveOutput(inputText, outputText, issues) {
-  const res = await fetch(`/improve`, {
+  const res = await fetch(`${BASE}/improve`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ input_text: inputText, output_text: outputText, issues }),
@@ -31,7 +31,7 @@ Return ONLY the improved question — no explanation, no prefix.`;
 
   const userMsg = `Original question: "${inputText}"\n\nIssues found: ${issues.join(', ')}\n\nRewrite this question to be better.`;
 
-  const res = await fetch(`/proxy/chat`, {
+  const res = await fetch(`${BASE}/proxy/chat`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
@@ -40,7 +40,7 @@ Return ONLY the improved question — no explanation, no prefix.`;
         { role: 'user',   content: userMsg },
       ],
       model: 'gpt-4o-mini',
-      evaluate: false,  // don't waste tokens evaluating this meta-call
+      evaluate: false,
     }),
   });
   if (!res.ok) throw new Error(await res.text());
@@ -50,8 +50,8 @@ Return ONLY the improved question — no explanation, no prefix.`;
 
 export async function fetchStats() {
   const [sRes, rRes] = await Promise.all([
-    fetch(`/stats`),
-    fetch(`/regression`),
+    fetch(`${BASE}/stats`),
+    fetch(`${BASE}/regression`),
   ]);
   const stats = sRes.ok ? await sRes.json() : {};
   const reg   = rRes.ok ? await rRes.json() : null;
@@ -59,13 +59,13 @@ export async function fetchStats() {
 }
 
 export async function fetchProxyLogs(limit = 50) {
-  const res = await fetch(`/proxy/logs?limit=${limit}`);
+  const res = await fetch(`${BASE}/proxy/logs?limit=${limit}`);
   if (!res.ok) return [];
   return res.json();
 }
 
 export async function proxyChat(messages, model = 'gpt-4o-mini', evaluate = true) {
-  const res = await fetch(`/proxy/chat`, {
+  const res = await fetch(`${BASE}/proxy/chat`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ messages, model, evaluate }),
@@ -78,8 +78,17 @@ export async function proxyChat(messages, model = 'gpt-4o-mini', evaluate = true
 }
 
 export function createProxyLogSocket(onMessage, onOpen, onClose) {
-  const proto = window.location.protocol === 'https:' ? 'wss' : 'ws';
-  const ws = new WebSocket(`${proto}://${window.location.host}/ws/proxy-logs`);
+  const base = import.meta.env.VITE_API_BASE_URL;
+  let wsUrl;
+  if (base) {
+    const host = base.replace(/^https?:\/\//, '');
+    const proto = base.startsWith('https') ? 'wss' : 'ws';
+    wsUrl = `${proto}://${host}/ws/proxy-logs`;
+  } else {
+    const proto = window.location.protocol === 'https:' ? 'wss' : 'ws';
+    wsUrl = `${proto}://${window.location.host}/ws/proxy-logs`;
+  }
+  const ws = new WebSocket(wsUrl);
   ws.onmessage = (e) => { try { onMessage(JSON.parse(e.data)); } catch {} };
   if (onOpen)  ws.onopen  = onOpen;
   if (onClose) ws.onclose = onClose;
