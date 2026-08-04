@@ -12,7 +12,7 @@ const queryClient = new QueryClient({
 });
 
 function MainApp() {
-  const [view, setView] = useState('dashboard'); // 'landing' | 'dashboard'
+  const [view, setView] = useState('landing'); // 'landing' | 'dashboard'
   const [activeTab, setActiveTab] = useState('eval');
 
   if (view === 'landing') {

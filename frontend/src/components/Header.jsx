@@ -95,13 +95,19 @@ export default function Header({ onHome }) {
             <button
               onClick={onHome}
               style={{
+                display: 'flex', alignItems: 'center', gap: 6,
                 background: 'rgba(255,255,255,0.05)',
                 border: '1px solid rgba(255,255,255,0.12)',
                 color: '#94a3b8', padding: '6px 12px', borderRadius: 8,
                 fontSize: 11.5, fontWeight: 600, cursor: 'pointer'
               }}
             >
-              🌐 Landing Page
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="12" r="10"/>
+                <line x1="2" y1="12" x2="22" y2="12"/>
+                <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+              </svg>
+              Landing Page
             </button>
           )}
           {/* BYOK API Key Button */}
@@ -121,7 +127,7 @@ export default function Header({ onHome }) {
               <path d="M21 2l-2 2m-2-2l2 2M3 11l9-9 9 9-9 9-9-9z"/>
               <path d="M7 15l-4 4 2 2 4-4"/>
             </svg>
-            {apiKey ? 'API Key: Active 🔑' : 'Set OpenAI Key'}
+            {apiKey ? 'API Key: Active' : 'Set OpenAI Key'}
           </button>
 
           {/* Pass Rate */}
@@ -173,12 +179,16 @@ export default function Header({ onHome }) {
         }}>
           <div className="card" style={{ width: '100%', maxWidth: 480, background: '#0a0d18', border: '1px solid rgba(59,130,246,0.3)' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
-              <div style={{ fontSize: 15, fontWeight: 700, color: '#f1f5f9' }}>
-                🔑 Bring Your Own OpenAI API Key
+              <div style={{ fontSize: 15, fontWeight: 700, color: '#f1f5f9', display: 'flex', alignItems: 'center', gap: 8 }}>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#60a5fa" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M21 2l-2 2m-2-2l2 2M3 11l9-9 9 9-9 9-9-9z"/>
+                  <path d="M7 15l-4 4 2 2 4-4"/>
+                </svg>
+                Bring Your Own OpenAI API Key
               </div>
               <button
                 onClick={() => setShowModal(false)}
-                style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', fontSize: 18 }}
+                style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', fontSize: 16 }}
               >
                 ✕
               </button>

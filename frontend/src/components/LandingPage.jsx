@@ -72,7 +72,7 @@ function FeatureCard({ icon, title, desc, color, delay }) {
         width: 44, height: 44, borderRadius: 12,
         background: color + '18', color,
         display: 'flex', alignItems: 'center', justifyContent: 'center',
-        marginBottom: 16, fontSize: 22,
+        marginBottom: 16,
       }}>{icon}</div>
       <h3 style={{ fontSize: 17, fontWeight: 700, marginBottom: 8, color: '#f1f5f9' }}>{title}</h3>
       <p style={{ fontSize: 13, color: '#64748b', lineHeight: 1.65 }}>{desc}</p>
@@ -108,12 +108,10 @@ export default function LandingPage({ onLaunch }) {
   const subRef = useRef(null);
   const ctaRef = useRef(null);
   const imgRef = useRef(null);
-  const badgeRef = useRef(null);
 
   useEffect(() => {
     const tl = gsap.timeline({ defaults: { ease: 'power3.out' } });
-    tl.fromTo(badgeRef.current, { y: 16, opacity: 0 }, { y: 0, opacity: 1, duration: 0.6 })
-      .fromTo(titleRef.current, { y: 40, opacity: 0 }, { y: 0, opacity: 1, duration: 0.8 }, '-=0.2')
+    tl.fromTo(titleRef.current, { y: 40, opacity: 0 }, { y: 0, opacity: 1, duration: 0.8 })
       .fromTo(subRef.current, { y: 24, opacity: 0 }, { y: 0, opacity: 1, duration: 0.7 }, '-=0.4')
       .fromTo(ctaRef.current, { y: 18, opacity: 0 }, { y: 0, opacity: 1, duration: 0.6 }, '-=0.3')
       .fromTo(imgRef.current,
@@ -183,8 +181,11 @@ export default function LandingPage({ onLaunch }) {
             </svg>
             GitHub
           </a>
-          <button onClick={onLaunch} className="eval-btn" style={{ padding: '8px 18px', fontSize: 13, borderRadius: 9 }}>
-            Launch App →
+          <button onClick={onLaunch} className="eval-btn" style={{ padding: '8px 18px', fontSize: 13, borderRadius: 9, display: 'flex', alignItems: 'center', gap: 6 }}>
+            Launch App
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M5 12h14M12 5l7 7-7 7"/>
+            </svg>
           </button>
         </div>
       </nav>
@@ -215,22 +216,11 @@ export default function LandingPage({ onLaunch }) {
         <FloatingBlock x={-420} y={30}   size={65}  color="#3b82f6" delay={1.5} duration={5.2} rotate={20} />
         <FloatingBlock x={450}  y={80}   size={45}  color="#10b981" delay={1.2} duration={4.2} rotate={-15} />
 
-        {/* Badge */}
-        <div ref={badgeRef} style={{
-          display: 'inline-flex', alignItems: 'center', gap: 8,
-          padding: '6px 16px', borderRadius: 24, fontSize: 12, fontWeight: 600,
-          background: 'rgba(59,130,246,0.1)', color: '#60a5fa',
-          border: '1px solid rgba(59,130,246,0.25)', marginBottom: 28,
-        }}>
-          <span style={{ width: 7, height: 7, borderRadius: '50%', background: '#3b82f6', boxShadow: '0 0 10px #3b82f6', animation: 'blink 2s ease-in-out infinite' }} />
-          Live Production · Vercel + Render Deployed
-        </div>
-
         {/* Title */}
         <h1 ref={titleRef} style={{
           fontSize: 'clamp(38px, 6vw, 72px)', fontWeight: 900,
           letterSpacing: '-2px', lineHeight: 1.05,
-          textAlign: 'center', maxWidth: 960, marginBottom: 22,
+          textAlign: 'center', maxWidth: 960, marginBottom: 22, marginTop: 20,
           background: 'linear-gradient(180deg, #ffffff 0%, #94a3b8 100%)',
           WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
         }}>
@@ -249,13 +239,15 @@ export default function LandingPage({ onLaunch }) {
         }}>
           GUARDIAN combines a <strong style={{ color: '#94a3b8' }}>LangGraph multi-critic pipeline</strong>,
           zero-token security guardrails, 1-in-5 smart sampling proxy routing,
-          and an <strong style={{ color: '#94a3b8' }}>MLOps model benchmark suite</strong> into one sleek command center.
+          and an <strong style={{ color: '#94a3b8' }}>MLOps model benchmark suite</strong> into one command center.
         </p>
 
         {/* CTA Row */}
         <div ref={ctaRef} style={{ display: 'flex', gap: 14, flexWrap: 'wrap', justifyContent: 'center', marginBottom: 64 }}>
-          <button onClick={onLaunch} className="eval-btn" style={{ padding: '14px 32px', fontSize: 15, borderRadius: 12, gap: 10 }}>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+          <button onClick={onLaunch} className="eval-btn" style={{ padding: '14px 32px', fontSize: 15, borderRadius: 12, display: 'inline-flex', alignItems: 'center', gap: 10 }}>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <polygon points="5 3 19 12 5 21 5 3"/>
+            </svg>
             Launch Command Center
           </button>
           <a
@@ -331,17 +323,48 @@ export default function LandingPage({ onLaunch }) {
           Not a toy prototype. Every module is built with production-grade patterns — token budgets, security gates, and observability baked in.
         </p>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 18 }}>
-          <FeatureCard delay={0} icon="🔗" color="#3b82f6" title="LangGraph Multi-Critic Engine"
+          <FeatureCard delay={0} icon={
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
+              <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
+            </svg>
+          } color="#3b82f6" title="LangGraph Multi-Critic Engine"
             desc="Accuracy, Relevance, and Completeness critics run through a StateGraph. An Adjudicator node weighs verdicts and returns a deterministic PASS / FAIL with reasoning." />
-          <FeatureCard delay={1} icon="🛡️" color="#10b981" title="Zero-Token Security Guard"
+          <FeatureCard delay={1} icon={
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+            </svg>
+          } color="#10b981" title="Zero-Token Security Guard"
             desc="AST + regex pre-check fires in <15ms before any LLM call. Blocks 30+ prompt injection patterns, jailbreaks, DAN mode, and credential extraction attempts." />
-          <FeatureCard delay={2} icon="⚡" color="#a78bfa" title="1-in-5 Smart Sampling Proxy"
+          <FeatureCard delay={2} icon={
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+            </svg>
+          } color="#a78bfa" title="1-in-5 Smart Sampling Proxy"
             desc="Transparent OpenAI-compatible proxy evaluates 20% of traffic on a round-robin schedule. Suspicious short responses are always force-evaluated regardless of sample rate." />
-          <FeatureCard delay={3} icon="📊" color="#f59e0b" title="MLOps Dataset Audit Suite"
+          <FeatureCard delay={3} icon={
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="18" y1="20" x2="18" y2="10"/>
+              <line x1="12" y1="20" x2="12" y2="4"/>
+              <line x1="6" y1="20" x2="6" y2="14"/>
+            </svg>
+          } color="#f59e0b" title="MLOps Dataset Audit Suite"
             desc="Upload any CSV. GUARDIAN trains Random Forest, Extra Trees, Logistic Regression, and Naive Bayes, then diagnoses underfitting vs. overfitting with F1, Precision, and Recall." />
-          <FeatureCard delay={4} icon="📡" color="#22d3ee" title="Real-Time WebSocket Logs"
+          <FeatureCard delay={4} icon={
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M5 12.55a11 11 0 0 1 14.08 0"/>
+              <path d="M1.42 9a16 16 0 0 1 21.16 0"/>
+              <path d="M8.53 16.11a6 6 0 0 1 6.95 0"/>
+              <line x1="12" y1="20" x2="12.01" y2="20"/>
+            </svg>
+          } color="#22d3ee" title="Real-Time WebSocket Logs"
             desc="Proxy request logs stream live to your dashboard via WebSocket. Every evaluation, block, and passthrough event appears in under 100ms — no polling required." />
-          <FeatureCard delay={5} icon="🔔" color="#f43f5e" title="Slack Block-Kit Alerts"
+          <FeatureCard delay={5} icon={
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+              <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+            </svg>
+          } color="#f43f5e" title="Slack Block-Kit Alerts"
             desc="Regression detection compares rolling windows of pass rates. Drops below the threshold trigger rich Slack notifications automatically after every evaluation cycle." />
         </div>
       </section>
@@ -406,6 +429,7 @@ export default function LandingPage({ onLaunch }) {
         padding: '80px 24px', textAlign: 'center',
         borderTop: '1px solid rgba(255,255,255,0.07)',
         background: 'linear-gradient(to bottom, #000000, #030712)',
+        display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center'
       }}>
         <h2 style={{ fontSize: 38, fontWeight: 900, marginBottom: 14, letterSpacing: '-1px' }}>
           Ready to Guard Your<br />
@@ -414,8 +438,11 @@ export default function LandingPage({ onLaunch }) {
         <p style={{ fontSize: 15, color: '#64748b', marginBottom: 36, maxWidth: 480, margin: '0 auto 36px' }}>
           Launch the live command center. No sign-up required. Bring your own OpenAI key or run on Groq for free.
         </p>
-        <button onClick={onLaunch} className="eval-btn" style={{ padding: '15px 40px', fontSize: 16, borderRadius: 12 }}>
-          🚀 Launch GUARDIAN
+        <button onClick={onLaunch} className="eval-btn" style={{ padding: '15px 40px', fontSize: 16, borderRadius: 12, display: 'inline-flex', alignItems: 'center', gap: 10 }}>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <polygon points="5 3 19 12 5 21 5 3"/>
+          </svg>
+          Launch GUARDIAN
         </button>
         <div style={{ marginTop: 32, fontSize: 12, color: '#334155' }}>
           Open Source · Free to use · Built with LangGraph + FastAPI + React 18
