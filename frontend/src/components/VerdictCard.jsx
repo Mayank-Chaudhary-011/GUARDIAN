@@ -85,7 +85,14 @@ export default function VerdictCard({ result }) {
           <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12 }}>
             <div>
               <div className={`v-word ${cls}`}>{result.final_verdict}</div>
-              <span className="qtag">{result.question_type}</span>
+              <div style={{ display: 'flex', gap: 6, marginTop: 4, flexWrap: 'wrap' }}>
+                <span className="qtag">{result.question_type}</span>
+                {result.provider && (
+                  <span className="qtag" style={{ background: 'rgba(59,130,246,0.15)', color: '#60a5fa', borderColor: 'rgba(59,130,246,0.3)' }}>
+                    ⚡ {result.provider}
+                  </span>
+                )}
+              </div>
             </div>
             <div style={{ textAlign: 'right' }}>
               <div className="v-fscore" style={{ color: isPass ? 'var(--green)' : 'var(--red)' }}>

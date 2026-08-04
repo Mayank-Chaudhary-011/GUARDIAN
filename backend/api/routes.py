@@ -41,6 +41,7 @@ class EvalResponse(BaseModel):
     reasoning: str
     tokens_est: int = 0
     tokens_saved: int = 0
+    provider: str = "Groq (llama-3.3-70b-versatile)"
 
 
 class ImproveRequest(BaseModel):
@@ -105,6 +106,7 @@ def run_eval(request: EvalRequest, x_openai_api_key: Optional[str] = Header(None
             tokens_saved=result.get("tokens_saved", 0),
             sampled=True
         ))
+        provider_name = "OpenAI (gpt-4o)" if (x_openai_api_key and x_openai_api_key.strip()) else "Groq (llama-3.3-70b)"
         return EvalResponse(
             final_verdict=result["final_verdict"],
             final_score=result["final_score"],
@@ -116,7 +118,8 @@ def run_eval(request: EvalRequest, x_openai_api_key: Optional[str] = Header(None
             question_type=result.get("question_type", "factual"),
             reasoning=result.get("reasoning", ""),
             tokens_est=result.get("tokens_est", 0),
-            tokens_saved=result.get("tokens_saved", 0)
+            tokens_saved=result.get("tokens_saved", 0),
+            provider=provider_name
         )
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
