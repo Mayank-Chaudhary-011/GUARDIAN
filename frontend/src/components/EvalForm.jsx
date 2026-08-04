@@ -117,8 +117,8 @@ export default function EvalForm() {
 
   return (
     <div ref={formRef} style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-      {/* ── Two-column main section ── */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20, alignItems: 'start' }}>
+      {/* ── Two-column main section (stacks on mobile) ── */}
+      <div className="eval-grid">
 
         {/* ── LEFT: Input Panel ── */}
         <div className="card">

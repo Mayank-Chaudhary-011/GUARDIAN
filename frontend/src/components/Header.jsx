@@ -45,16 +45,7 @@ export default function Header({ onHome }) {
 
   return (
     <>
-      <header style={{
-        position: 'sticky', top: 0, zIndex: 100,
-        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        padding: '0 36px',
-        height: 64,
-        background: 'rgba(5, 7, 15, 0.95)',
-        backdropFilter: 'blur(24px)',
-        WebkitBackdropFilter: 'blur(24px)',
-        borderBottom: '1px solid rgba(255,255,255,0.08)',
-      }}>
+      <header className="app-header">
         {/* Logo */}
         <div
           onClick={onHome}
@@ -90,7 +81,7 @@ export default function Header({ onHome }) {
         </div>
 
         {/* Right side stats & BYOK key control */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'wrap' }}>
+        <div className="app-header-controls">
           {/* BYOK API Key Button */}
           <button
             onClick={() => setShowModal(true)}
