@@ -1,0 +1,10 @@
+{
+  "pythonVersion": "3.11",
+  "pythonPlatform": "Windows",
+  "include": ["backend", "test_day2.py", "test_day3.py", "test_day4.py"],
+  "exclude": ["guardian", "frontend"],
+  "venvPath": ".",
+  "venv": "guardian",
+  "reportMissingImports": true,
+  "reportMissingModuleSource": false
+}
