@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { fetchStats } from '../api';
 
-export default function Header() {
+export default function Header({ onHome }) {
   const [apiKey, setApiKey] = useState('');
   const [showModal, setShowModal] = useState(false);
   const [inputVal, setInputVal] = useState('');
@@ -56,7 +56,10 @@ export default function Header() {
         borderBottom: '1px solid rgba(255,255,255,0.08)',
       }}>
         {/* Logo */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+        <div
+          onClick={onHome}
+          style={{ display: 'flex', alignItems: 'center', gap: 14, cursor: onHome ? 'pointer' : 'default' }}
+        >
           <div style={{
             width: 36, height: 36, borderRadius: 10,
             display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -87,7 +90,20 @@ export default function Header() {
         </div>
 
         {/* Right side stats & BYOK key control */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'wrap' }}>
+          {onHome && (
+            <button
+              onClick={onHome}
+              style={{
+                background: 'rgba(255,255,255,0.05)',
+                border: '1px solid rgba(255,255,255,0.12)',
+                color: '#94a3b8', padding: '6px 12px', borderRadius: 8,
+                fontSize: 11.5, fontWeight: 600, cursor: 'pointer'
+              }}
+            >
+              🌐 Landing Page
+            </button>
+          )}
           {/* BYOK API Key Button */}
           <button
             onClick={() => setShowModal(true)}
