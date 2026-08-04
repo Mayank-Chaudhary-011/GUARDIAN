@@ -13,6 +13,7 @@ from backend.memory.token_optimizer import count_tokens_approx
 from backend.api.security import check_request
 from backend.alerts.monitor import check_and_alert, check_regression
 from backend.alerts.slack import send_slack_alert
+from backend.memory.mlops_audit import run_mlops_model_audit
 from backend.proxy.logger import (
     ProxyLogEntry, log_proxy_event, get_proxy_logs,
     register_ws_client, unregister_ws_client, broadcast_log
@@ -372,3 +373,14 @@ async def ws_proxy_logs(websocket: WebSocket):
             await websocket.receive_text()
     except WebSocketDisconnect:
         unregister_ws_client(websocket)
+
+
+@router.post("/data/mlops-audit")
+def mlops_audit_endpoint(payload: dict = None):
+    """
+    Evaluates dataset compatibility across Logistic Regression, Random Forest, 
+    Extra Trees, and Naive Bayes models to detect Underfitting vs Overfitting.
+    """
+    records = payload.get("records", []) if payload else []
+    return run_mlops_model_audit(records)
+

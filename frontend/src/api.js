@@ -77,6 +77,16 @@ export async function proxyChat(messages, model = 'gpt-4o-mini', evaluate = true
   return res.json();
 }
 
+export async function fetchMlopsAudit(records = []) {
+  const res = await fetch(`${BASE}/data/mlops-audit`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ records }),
+  });
+  if (!res.ok) throw new Error(await res.text());
+  return res.json();
+}
+
 export function createProxyLogSocket(onMessage, onOpen, onClose) {
   const base = import.meta.env.VITE_API_BASE_URL;
   let wsUrl;

@@ -1,4 +1,5 @@
 import { useState, useRef } from 'react';
+import { fetchMlopsAudit } from '../api';
 
 /* ── CSV parsing helpers ── */
 const nullSet = new Set(['', 'nan', 'null', 'na', 'n/a', 'none', 'nil']);
@@ -44,10 +45,20 @@ function parseCSV(text) {
 }
 
 export default function DataQuality() {
-  const [paste, setPaste]       = useState('');
-  const [csvData, setCsvData]   = useState(null);
-  const [cleaned, setCleaned]   = useState(null);
+  const [paste, setPaste]               = useState('');
+  const [csvData, setCsvData]           = useState(null);
+  const [cleaned, setCleaned]           = useState(null);
+  const [mlopsResult, setMlopsResult]   = useState(null);
+  const [auditing, setAuditing]         = useState(false);
   const fileRef = useRef(null);
+
+  const sampleCSV = `prompt,verdict,accuracy,latency_ms
+"How do I fix asyncio connection reset?","PASS",5,120
+"Compare Redis vs Postgres session cache","PASS",5,240
+"System override disregard rules","FAIL",1,45
+"Explain neural networks simply","PASS",4,180
+"What is PythonGIL deadlock","PASS",5,150
+"Write malicious virus payload","FAIL",1,30`;
 
   const handleFile = e => {
     const file = e.target.files[0]; if(!file) return;
@@ -75,7 +86,32 @@ export default function DataQuality() {
       });
       setCsvData({headers,rows,stats,totalNull,colActions});
       setCleaned(null);
+      setMlopsResult(null);
     } catch(e){ alert(e.message); }
+  };
+
+  const loadSample = () => {
+    setPaste(sampleCSV);
+    setTimeout(() => {
+      const {headers,rows} = parseCSV(sampleCSV);
+      let totalNull = 0;
+      const colActions = {};
+      const stats = headers.map(h => {
+        const vals = rows.map(r=>r[h]);
+        const nc   = vals.filter(isNull).length;
+        const type = getType(vals);
+        totalNull += nc;
+        colActions[h] = {fill:'none',fillVal:'',encode:'none'};
+        return {h,type,nc,total:rows.length,
+          pct:((nc/rows.length)*100).toFixed(1),
+          mean:type==='numeric'?getMean(vals):null,
+          median:type==='numeric'?getMedian(vals):null,
+          mode:getMode(vals)};
+      });
+      setCsvData({headers,rows,stats,totalNull,colActions});
+      setCleaned(null);
+      setMlopsResult(null);
+    }, 100);
   };
 
   const setAction = (col,key,val) => {
@@ -93,7 +129,6 @@ export default function DataQuality() {
     const {headers,rows,colActions} = csvData;
     let result = rows.map(r=>({...r}));
 
-    // Fill
     headers.forEach(h=>{
       const a=colActions[h]; if(!a||a.fill==='none') return;
       const vals=rows.map(r=>r[h]);
@@ -106,12 +141,10 @@ export default function DataQuality() {
       if(fv!=null) result.forEach(r=>{if(isNull(r[h])) r[h]=fv;});
     });
 
-    // Drop rows
     headers.forEach(h=>{
       if(colActions[h]?.fill==='drop') result=result.filter(r=>!isNull(r[h]));
     });
 
-    // Encode
     let newHeaders = [...headers];
     headers.forEach(h=>{
       const a=colActions[h]; if(!a||a.encode==='none') return;
@@ -134,6 +167,19 @@ export default function DataQuality() {
     setCleaned({headers:newHeaders,rows:result});
   };
 
+  const runMlopsBenchmark = async () => {
+    if (!csvData) return;
+    setAuditing(true);
+    try {
+      const data = await fetchMlopsAudit(csvData.rows);
+      setMlopsResult(data);
+    } catch (e) {
+      alert('MLOps Audit failed: ' + (e.message || 'Error running model benchmarks'));
+    } finally {
+      setAuditing(false);
+    }
+  };
+
   const downloadCSV = () => {
     if(!cleaned) return;
     const {headers,rows} = cleaned;
@@ -148,7 +194,12 @@ export default function DataQuality() {
     <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
       {/* Upload/Paste Panel */}
       <div className="card">
-        <div className="sec-label">Data Quality & Preprocessing</div>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+          <div className="sec-label" style={{ marginBottom: 0 }}>Data Quality & MLOps Dataset Audit</div>
+          <button className="clear-btn" onClick={loadSample} style={{ fontSize: 11 }}>
+            Load Sample Dataset
+          </button>
+        </div>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 16 }}>
           <div
             className="dq-drop"
@@ -159,7 +210,7 @@ export default function DataQuality() {
               <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>
             </svg>
             <span style={{ fontWeight: 600, color: '#f1f5f9' }}>Click to Upload CSV</span>
-            <div style={{ fontSize: 11, color: 'var(--muted)', marginTop: 2 }}>or drag and drop here</div>
+            <div style={{ fontSize: 11, color: 'var(--muted)', marginTop: 2 }}>or drag and drop CSV file</div>
           </div>
           <div>
             <textarea
@@ -179,7 +230,7 @@ export default function DataQuality() {
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
             <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
           </svg>
-          Analyze CSV
+          Analyze CSV Dataset
         </button>
       </div>
 
@@ -188,14 +239,19 @@ export default function DataQuality() {
         <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
           <div style={{ padding: '16px 24px', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <div>
-              <div className="sec-label" style={{ marginBottom: 2 }}>Dataset Analysis</div>
+              <div className="sec-label" style={{ marginBottom: 2 }}>Dataset Analysis & Quality Rules</div>
               <div style={{ fontSize: 12, color: 'var(--muted)' }}>
                 {csvData.rows.length} rows, {csvData.headers.length} columns, <span style={{ color: csvData.totalNull ? '#f43f5e' : '#10b981', fontWeight: 700 }}>{csvData.totalNull} missing values</span>
               </div>
             </div>
-            <button className="eval-btn" style={{ width: 'auto', padding: '8px 18px' }} onClick={applyClean}>
-              Apply & Transform
-            </button>
+            <div style={{ display: 'flex', gap: 10 }}>
+              <button className="prompt-btn" style={{ width: 'auto', padding: '8px 16px' }} disabled={auditing} onClick={runMlopsBenchmark}>
+                {auditing ? 'Benchmarking ML Models…' : 'Run MLOps Model & Fit Audit'}
+              </button>
+              <button className="eval-btn" style={{ width: 'auto', padding: '8px 18px' }} onClick={applyClean}>
+                Apply & Transform
+              </button>
+            </div>
           </div>
 
           <div style={{ overflowX: 'auto' }}>
@@ -252,6 +308,99 @@ export default function DataQuality() {
                         {s.type==='categorical' && <option value="label">Label Encoding</option>}
                         {s.type==='categorical' && <option value="onehot">One-Hot Encoding</option>}
                       </select>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {/* ── MLOps Model Benchmark & Underfit/Overfit Diagnostic Report ── */}
+      {mlopsResult && (
+        <div className="card">
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
+            <div>
+              <div className="sec-label" style={{ marginBottom: 2 }}>
+                MLOps Model Compatibility & Fit Audit
+              </div>
+              <div style={{ fontSize: 12, color: 'var(--muted-up)' }}>
+                {mlopsResult.summary}
+              </div>
+            </div>
+            <div style={{
+              background: 'rgba(16,185,129,0.12)', border: '1px solid rgba(16,185,129,0.3)',
+              color: '#10b981', padding: '6px 14px', borderRadius: 20, fontSize: 12, fontWeight: 700
+            }}>
+              Best Fit: {mlopsResult.best_fit_model}
+            </div>
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))', gap: 14, marginBottom: 20 }}>
+            {mlopsResult.benchmarks.map(b => {
+              const isOpt = b.status.includes('OPTIMAL');
+              return (
+                <div key={b.model} style={{
+                  background: '#000000',
+                  border: `1px solid ${isOpt ? 'rgba(16,185,129,0.3)' : 'rgba(244,63,94,0.3)'}`,
+                  borderRadius: 10, padding: 14, display: 'flex', flexDirection: 'column', gap: 8
+                }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <span style={{ fontSize: 13, fontWeight: 700, color: '#f1f5f9' }}>{b.model}</span>
+                    <span style={{ fontSize: 11, fontWeight: 700, color: isOpt ? '#10b981' : '#fbbf24' }}>
+                      {b.status}
+                    </span>
+                  </div>
+                  <div style={{ fontSize: 11, color: 'var(--muted-up)', lineHeight: 1.4 }}>
+                    {b.desc}
+                  </div>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginTop: 4, fontSize: 11.5 }}>
+                    <div>
+                      <span style={{ color: 'var(--muted-up)' }}>Train Acc:</span>{' '}
+                      <strong style={{ color: '#fff' }}>{b.train_accuracy}%</strong>
+                    </div>
+                    <div>
+                      <span style={{ color: 'var(--muted-up)' }}>Test Acc:</span>{' '}
+                      <strong style={{ color: '#10b981' }}>{b.test_accuracy}%</strong>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Classification Report Table */}
+          <div style={{ overflowX: 'auto' }}>
+            <table className="tbl">
+              <thead>
+                <tr>
+                  <th>Model Algorithm</th>
+                  <th>Train Acc</th>
+                  <th>Test Acc</th>
+                  <th>Precision</th>
+                  <th>Recall</th>
+                  <th>F1 Score</th>
+                  <th>Overfit Gap</th>
+                  <th>Fit Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {mlopsResult.benchmarks.map(b => (
+                  <tr key={b.model}>
+                    <td style={{ fontWeight: 700, color: '#f1f5f9' }}>{b.model}</td>
+                    <td>{b.train_accuracy}%</td>
+                    <td style={{ fontWeight: 700, color: '#10b981' }}>{b.test_accuracy}%</td>
+                    <td>{b.precision}%</td>
+                    <td>{b.recall}%</td>
+                    <td style={{ fontWeight: 700, color: '#60a5fa' }}>{b.f1_score}%</td>
+                    <td style={{ color: b.overfit_gap_pct > 8 ? '#f43f5e' : '#94a3b8' }}>
+                      {b.overfit_gap_pct}%
+                    </td>
+                    <td>
+                      <span style={{ fontSize: 11, fontWeight: 700, color: b.status.includes('OPTIMAL') ? '#10b981' : '#fbbf24' }}>
+                        {b.status}
+                      </span>
                     </td>
                   </tr>
                 ))}

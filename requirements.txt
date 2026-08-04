@@ -19,3 +19,4 @@ instructor
 python-multipart
 aiofiles
 websockets
+scikit-learn
