@@ -72,10 +72,19 @@ export default function ProxyLogs() {
       gsap.fromTo(wrapRef.current, { y: 16, opacity: 0 }, { y: 0, opacity: 1, duration: 0.45, ease: 'power2.out' });
     }
 
-    // Load history
-    fetchProxyLogs(50)
-      .then(d => { setLogs(Array.isArray(d) ? d : []); setFetchErr(false); })
-      .catch(() => setFetchErr(true));
+    const loadLogs = () => {
+      fetchProxyLogs(50)
+        .then(d => {
+          if (Array.isArray(d) && d.length > 0) {
+            setLogs(d);
+            setFetchErr(false);
+          }
+        })
+        .catch(() => setFetchErr(true));
+    };
+
+    loadLogs();
+    const timer = setInterval(loadLogs, 4000);
 
     // Live WebSocket
     const ws = createProxyLogSocket(
@@ -89,7 +98,10 @@ export default function ProxyLogs() {
       () => setWsStatus('connected'),
       () => setWsStatus('disconnected'),
     );
-    return () => ws.close();
+    return () => {
+      clearInterval(timer);
+      ws.close();
+    };
   }, []);
 
   const handleSend = async () => {

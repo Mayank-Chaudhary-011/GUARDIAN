@@ -57,9 +57,24 @@ class ImproveResponse(BaseModel):
 
 @router.post("/eval", response_model=EvalResponse)
 def run_eval(request: EvalRequest):
+    t0 = time.time()
+    ts = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(t0))
+
     # ── Security gate ── runs before any LLM call ──
     guard = check_request(request.input_text, request.output_text)
     if not guard["is_safe"]:
+        log_proxy_event(ProxyLogEntry(
+            id=str(uuid.uuid4()),
+            timestamp=t0,
+            timestamp_str=ts,
+            prompt=request.input_text[:120],
+            blocked=True,
+            block_reason=guard["reason"],
+            flagged_field=guard["flagged_field"],
+            latency_ms=12.0,
+            tokens_saved=0,
+            sampled=False
+        ))
         raise HTTPException(
             status_code=400,
             detail={
@@ -74,6 +89,19 @@ def run_eval(request: EvalRequest):
             "input_text":  request.input_text,
             "output_text": request.output_text
         })
+        log_proxy_event(ProxyLogEntry(
+            id=str(uuid.uuid4()),
+            timestamp=t0,
+            timestamp_str=ts,
+            prompt=request.input_text[:120],
+            response_preview=request.output_text[:120],
+            blocked=False,
+            verdict=result["final_verdict"],
+            score=result["final_score"],
+            latency_ms=round((time.time() - t0) * 1000, 1),
+            tokens_saved=result.get("tokens_saved", 0),
+            sampled=True
+        ))
         return EvalResponse(
             final_verdict=result["final_verdict"],
             final_score=result["final_score"],
