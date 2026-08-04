@@ -74,8 +74,8 @@ function FeatureCard({ icon, title, desc, color, delay }) {
         display: 'flex', alignItems: 'center', justifyContent: 'center',
         marginBottom: 16,
       }}>{icon}</div>
-      <h3 style={{ fontSize: 17, fontWeight: 700, marginBottom: 8, color: '#f1f5f9' }}>{title}</h3>
-      <p style={{ fontSize: 13, color: '#64748b', lineHeight: 1.65 }}>{desc}</p>
+      <h3 style={{ fontFamily: "'Outfit', 'Plus Jakarta Sans', sans-serif", fontSize: 18, fontWeight: 700, marginBottom: 8, color: '#f1f5f9' }}>{title}</h3>
+      <p style={{ fontSize: 13.5, color: '#64748b', lineHeight: 1.65 }}>{desc}</p>
     </div>
   );
 }
@@ -96,7 +96,7 @@ function MetricPill({ value, label, color }) {
       borderRadius: 14, padding: '20px 24px', textAlign: 'center',
       boxShadow: `0 0 40px ${color}10`,
     }}>
-      <div style={{ fontSize: 34, fontWeight: 900, color, letterSpacing: '-1px', lineHeight: 1 }}>{value}</div>
+      <div style={{ fontFamily: "'Outfit', 'Plus Jakarta Sans', sans-serif", fontSize: 36, fontWeight: 800, color, letterSpacing: '-1px', lineHeight: 1 }}>{value}</div>
       <div style={{ fontSize: 12, color: '#64748b', marginTop: 6, fontWeight: 500 }}>{label}</div>
     </div>
   );
@@ -129,39 +129,39 @@ export default function LandingPage({ onLaunch }) {
   }, []);
 
   return (
-    <div style={{ background: '#000000', color: '#fff', fontFamily: "'Inter', sans-serif", overflowX: 'hidden' }}>
+    <div style={{ background: '#000000', color: '#fff', fontFamily: "'Plus Jakarta Sans', 'Inter', sans-serif", overflowX: 'hidden' }}>
 
       {/* ── Navbar ── */}
       <nav style={{
         position: 'sticky', top: 0, zIndex: 200,
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        padding: '0 40px', height: 62,
+        padding: '0 40px', height: 64,
         background: 'rgba(0,0,0,0.85)', backdropFilter: 'blur(20px)',
         borderBottom: '1px solid rgba(255,255,255,0.07)',
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
           <div style={{
-            width: 34, height: 34, borderRadius: 9,
+            width: 36, height: 36, borderRadius: 10,
             background: 'linear-gradient(135deg, #1e3a8a, #3b82f6)',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
           }}>
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
               <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
             </svg>
           </div>
-          <span style={{ fontSize: 16, fontWeight: 800, letterSpacing: 4, color: '#fff' }}>GUARDIAN</span>
+          <span style={{ fontFamily: "'Outfit', sans-serif", fontSize: 18, fontWeight: 800, letterSpacing: 4, color: '#fff' }}>GUARDIAN</span>
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: 28 }}>
-          <a href="#features" style={{ color: '#64748b', fontSize: 13, textDecoration: 'none', fontWeight: 500, transition: 'color 0.2s' }}
+          <a href="#features" style={{ color: '#64748b', fontSize: 13.5, textDecoration: 'none', fontWeight: 600, transition: 'color 0.2s' }}
             onMouseEnter={e => e.target.style.color = '#fff'}
             onMouseLeave={e => e.target.style.color = '#64748b'}
           >Features</a>
-          <a href="#architecture" style={{ color: '#64748b', fontSize: 13, textDecoration: 'none', fontWeight: 500, transition: 'color 0.2s' }}
+          <a href="#architecture" style={{ color: '#64748b', fontSize: 13.5, textDecoration: 'none', fontWeight: 600, transition: 'color 0.2s' }}
             onMouseEnter={e => e.target.style.color = '#fff'}
             onMouseLeave={e => e.target.style.color = '#64748b'}
           >Architecture</a>
-          <a href="#mlops" style={{ color: '#64748b', fontSize: 13, textDecoration: 'none', fontWeight: 500, transition: 'color 0.2s' }}
+          <a href="#mlops" style={{ color: '#64748b', fontSize: 13.5, textDecoration: 'none', fontWeight: 600, transition: 'color 0.2s' }}
             onMouseEnter={e => e.target.style.color = '#fff'}
             onMouseLeave={e => e.target.style.color = '#64748b'}
           >MLOps</a>
@@ -171,7 +171,7 @@ export default function LandingPage({ onLaunch }) {
             rel="noreferrer"
             style={{
               display: 'flex', alignItems: 'center', gap: 6,
-              color: '#94a3b8', fontSize: 12, textDecoration: 'none', fontWeight: 600,
+              color: '#94a3b8', fontSize: 12.5, textDecoration: 'none', fontWeight: 600,
               background: 'rgba(255,255,255,0.05)', padding: '7px 14px', borderRadius: 8,
               border: '1px solid rgba(255,255,255,0.1)', transition: 'all 0.2s'
             }}
@@ -181,9 +181,9 @@ export default function LandingPage({ onLaunch }) {
             </svg>
             GitHub
           </a>
-          <button onClick={onLaunch} className="eval-btn" style={{ padding: '8px 18px', fontSize: 13, borderRadius: 9, display: 'flex', alignItems: 'center', gap: 6 }}>
+          <button onClick={onLaunch} className="eval-btn" style={{ padding: '8px 20px', fontSize: 13, borderRadius: 9, display: 'flex', alignItems: 'center', gap: 6, fontFamily: "'Outfit', sans-serif", fontWeight: 700 }}>
             Launch App
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
               <path d="M5 12h14M12 5l7 7-7 7"/>
             </svg>
           </button>
@@ -218,9 +218,10 @@ export default function LandingPage({ onLaunch }) {
 
         {/* Title */}
         <h1 ref={titleRef} style={{
-          fontSize: 'clamp(38px, 6vw, 72px)', fontWeight: 900,
-          letterSpacing: '-2px', lineHeight: 1.05,
-          textAlign: 'center', maxWidth: 960, marginBottom: 22, marginTop: 20,
+          fontFamily: "'Outfit', 'Plus Jakarta Sans', sans-serif",
+          fontSize: 'clamp(40px, 6.5vw, 76px)', fontWeight: 800,
+          letterSpacing: '-2.5px', lineHeight: 1.05,
+          textAlign: 'center', maxWidth: 980, marginBottom: 24, marginTop: 20,
           background: 'linear-gradient(180deg, #ffffff 0%, #94a3b8 100%)',
           WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
         }}>
@@ -233,19 +234,19 @@ export default function LandingPage({ onLaunch }) {
 
         {/* Sub */}
         <p ref={subRef} style={{
-          fontSize: 'clamp(15px, 2vw, 19px)', color: '#64748b',
+          fontSize: 'clamp(15px, 2.2vw, 20px)', color: '#64748b',
           maxWidth: 780, textAlign: 'center', lineHeight: 1.65,
-          marginBottom: 36, fontWeight: 400,
+          marginBottom: 40, fontWeight: 400,
         }}>
-          GUARDIAN combines a <strong style={{ color: '#94a3b8' }}>LangGraph multi-critic pipeline</strong>,
+          GUARDIAN combines a <strong style={{ color: '#94a3b8', fontWeight: 600 }}>LangGraph multi-critic pipeline</strong>,
           zero-token security guardrails, 1-in-5 smart sampling proxy routing,
-          and an <strong style={{ color: '#94a3b8' }}>MLOps model benchmark suite</strong> into one command center.
+          and an <strong style={{ color: '#94a3b8', fontWeight: 600 }}>MLOps model benchmark suite</strong> into one command center.
         </p>
 
         {/* CTA Row */}
         <div ref={ctaRef} style={{ display: 'flex', gap: 14, flexWrap: 'wrap', justifyContent: 'center', marginBottom: 64 }}>
-          <button onClick={onLaunch} className="eval-btn" style={{ padding: '14px 32px', fontSize: 15, borderRadius: 12, display: 'inline-flex', alignItems: 'center', gap: 10 }}>
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <button onClick={onLaunch} className="eval-btn" style={{ padding: '15px 34px', fontSize: 15, borderRadius: 12, display: 'inline-flex', alignItems: 'center', gap: 10, fontFamily: "'Outfit', sans-serif", fontWeight: 700 }}>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
               <polygon points="5 3 19 12 5 21 5 3"/>
             </svg>
             Launch Command Center
@@ -254,7 +255,7 @@ export default function LandingPage({ onLaunch }) {
             href="https://github.com/Mayank-Chaudhary-011/GAURDIAN"
             target="_blank" rel="noreferrer"
             className="clear-btn"
-            style={{ padding: '14px 28px', fontSize: 15, borderRadius: 12, textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 8 }}
+            style={{ padding: '15px 28px', fontSize: 15, borderRadius: 12, textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 8, fontWeight: 600 }}
           >
             <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
               <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/>
@@ -287,12 +288,12 @@ export default function LandingPage({ onLaunch }) {
               <span style={{ width: 10, height: 10, borderRadius: '50%', background: '#27c93f' }} />
               <span style={{
                 flex: 1, background: '#1a1a1e', borderRadius: 6, padding: '4px 12px',
-                fontSize: 11, color: '#64748b', fontFamily: 'monospace', marginLeft: 8
+                fontSize: 11, color: '#64748b', fontFamily: 'Space Grotesk, monospace', marginLeft: 8
               }}>
                 guardian-ecru.vercel.app
               </span>
               <span style={{ width: 7, height: 7, borderRadius: '50%', background: '#10b981', boxShadow: '0 0 6px #10b981' }} />
-              <span style={{ fontSize: 10, color: '#10b981', fontWeight: 600 }}>LIVE</span>
+              <span style={{ fontSize: 10, color: '#10b981', fontWeight: 600, fontFamily: "'Outfit', sans-serif" }}>LIVE</span>
             </div>
             <img
               src="/dashboard.png"
@@ -315,11 +316,11 @@ export default function LandingPage({ onLaunch }) {
 
       {/* ── Features ── */}
       <section id="features" style={{ padding: '64px 24px', maxWidth: 1080, margin: '0 auto' }}>
-        <div className="sec-label" style={{ marginBottom: 10 }}>Capabilities</div>
-        <h2 style={{ fontSize: 32, fontWeight: 800, marginBottom: 10, letterSpacing: '-0.5px' }}>
+        <div className="sec-label" style={{ marginBottom: 10, fontFamily: "'Outfit', sans-serif", letterSpacing: 3 }}>Capabilities</div>
+        <h2 style={{ fontFamily: "'Outfit', 'Plus Jakarta Sans', sans-serif", fontSize: 36, fontWeight: 800, marginBottom: 12, letterSpacing: '-1px' }}>
           Engineered for Production LLM Stacks
         </h2>
-        <p style={{ fontSize: 14, color: '#64748b', marginBottom: 40, maxWidth: 580 }}>
+        <p style={{ fontSize: 14.5, color: '#64748b', marginBottom: 40, maxWidth: 580 }}>
           Not a toy prototype. Every module is built with production-grade patterns — token budgets, security gates, and observability baked in.
         </p>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 18 }}>
@@ -371,8 +372,8 @@ export default function LandingPage({ onLaunch }) {
 
       {/* ── Architecture Flow ── */}
       <section id="architecture" style={{ padding: '64px 24px', maxWidth: 1080, margin: '0 auto', borderTop: '1px solid rgba(255,255,255,0.07)' }}>
-        <div className="sec-label" style={{ marginBottom: 10 }}>System Design</div>
-        <h2 style={{ fontSize: 32, fontWeight: 800, marginBottom: 40, letterSpacing: '-0.5px' }}>
+        <div className="sec-label" style={{ marginBottom: 10, fontFamily: "'Outfit', sans-serif", letterSpacing: 3 }}>System Design</div>
+        <h2 style={{ fontFamily: "'Outfit', 'Plus Jakarta Sans', sans-serif", fontSize: 36, fontWeight: 800, marginBottom: 40, letterSpacing: '-1px' }}>
           How GUARDIAN Works
         </h2>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: 12 }}>
@@ -398,9 +399,9 @@ export default function LandingPage({ onLaunch }) {
                 borderRadius: 12, padding: 18,
                 borderLeft: `3px solid ${s.color}`,
               }}>
-                <div style={{ fontSize: 10, fontWeight: 700, color: s.color, letterSpacing: 2, marginBottom: 6 }}>{s.step}</div>
-                <div style={{ fontSize: 13, fontWeight: 700, color: '#e2e8f0', marginBottom: 4 }}>{s.label}</div>
-                <div style={{ fontSize: 11, color: '#475569', lineHeight: 1.5 }}>{s.sub}</div>
+                <div style={{ fontFamily: "'Space Grotesk', monospace", fontSize: 11, fontWeight: 700, color: s.color, letterSpacing: 2, marginBottom: 6 }}>{s.step}</div>
+                <div style={{ fontFamily: "'Outfit', sans-serif", fontSize: 14, fontWeight: 700, color: '#e2e8f0', marginBottom: 4 }}>{s.label}</div>
+                <div style={{ fontSize: 11.5, color: '#475569', lineHeight: 1.5 }}>{s.sub}</div>
               </div>
             );
           })}
@@ -409,16 +410,16 @@ export default function LandingPage({ onLaunch }) {
 
       {/* ── Tech Stack ── */}
       <section id="mlops" style={{ padding: '64px 24px', maxWidth: 1080, margin: '0 auto', borderTop: '1px solid rgba(255,255,255,0.07)' }}>
-        <div className="sec-label" style={{ marginBottom: 10 }}>Tech Stack</div>
-        <h2 style={{ fontSize: 32, fontWeight: 800, marginBottom: 32, letterSpacing: '-0.5px' }}>
+        <div className="sec-label" style={{ marginBottom: 10, fontFamily: "'Outfit', sans-serif", letterSpacing: 3 }}>Tech Stack</div>
+        <h2 style={{ fontFamily: "'Outfit', 'Plus Jakarta Sans', sans-serif", fontSize: 36, fontWeight: 800, marginBottom: 32, letterSpacing: '-1px' }}>
           Built With Production-Grade Tools
         </h2>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10 }}>
           {['Python 3.11', 'FastAPI', 'LangGraph', 'LangChain', 'OpenAI API', 'Groq API', 'Scikit-Learn', 'TF-IDF', 'React 18', 'Vite', 'GSAP', 'WebSockets', 'Supabase', 'Render', 'Vercel'].map((t, i) => (
             <span key={i} style={{
-              padding: '7px 16px', borderRadius: 8, fontSize: 12.5, fontWeight: 600,
+              padding: '8px 18px', borderRadius: 8, fontSize: 13, fontWeight: 600,
               background: 'rgba(255,255,255,0.04)', color: '#94a3b8',
-              border: '1px solid rgba(255,255,255,0.1)',
+              border: '1px solid rgba(255,255,255,0.1)', fontFamily: "'Outfit', sans-serif",
             }}>{t}</span>
           ))}
         </div>
@@ -431,20 +432,20 @@ export default function LandingPage({ onLaunch }) {
         background: 'linear-gradient(to bottom, #000000, #030712)',
         display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center'
       }}>
-        <h2 style={{ fontSize: 38, fontWeight: 900, marginBottom: 14, letterSpacing: '-1px' }}>
+        <h2 style={{ fontFamily: "'Outfit', 'Plus Jakarta Sans', sans-serif", fontSize: 40, fontWeight: 800, marginBottom: 16, letterSpacing: '-1.5px' }}>
           Ready to Guard Your<br />
           <span style={{ background: 'linear-gradient(90deg, #3b82f6, #10b981)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>LLM Pipeline?</span>
         </h2>
         <p style={{ fontSize: 15, color: '#64748b', marginBottom: 36, maxWidth: 480, margin: '0 auto 36px' }}>
           Launch the live command center. No sign-up required. Bring your own OpenAI key or run on Groq for free.
         </p>
-        <button onClick={onLaunch} className="eval-btn" style={{ padding: '15px 40px', fontSize: 16, borderRadius: 12, display: 'inline-flex', alignItems: 'center', gap: 10 }}>
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <button onClick={onLaunch} className="eval-btn" style={{ padding: '16px 42px', fontSize: 16, borderRadius: 12, display: 'inline-flex', alignItems: 'center', gap: 10, fontFamily: "'Outfit', sans-serif", fontWeight: 700 }}>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
             <polygon points="5 3 19 12 5 21 5 3"/>
           </svg>
           Launch GUARDIAN
         </button>
-        <div style={{ marginTop: 32, fontSize: 12, color: '#334155' }}>
+        <div style={{ marginTop: 32, fontSize: 12, color: '#334155', fontFamily: "'Outfit', sans-serif" }}>
           Open Source · Free to use · Built with LangGraph + FastAPI + React 18
         </div>
       </section>
