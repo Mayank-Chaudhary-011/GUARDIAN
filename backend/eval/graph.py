@@ -14,13 +14,7 @@ from backend.eval.critics import (
     completeness_critic
 )
 
-load_dotenv()
-
-adj_llm = ChatOpenAI(
-    model=os.getenv("PRIMARY_MODEL", "gpt-4o"),
-    api_key=os.getenv("OPENAI_API_KEY"),
-    temperature=0
-)
+from backend.gateway.providers import get_llm
 
 
 # ─────────────────────────────────────────────
@@ -125,7 +119,8 @@ Return ONLY valid JSON. No explanation. No markdown.
     "reasoning": "<one sentence explaining the verdict>"
 }}"""
 
-    response = adj_llm.invoke(prompt)
+    llm = get_llm(state.get("custom_api_key"), model_type="primary")
+    response = llm.invoke(prompt)
 
     try:
         raw  = response.content.replace("```json", "").replace("```", "").strip()

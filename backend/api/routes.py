@@ -58,7 +58,7 @@ class ImproveResponse(BaseModel):
 
 
 @router.post("/eval", response_model=EvalResponse)
-def run_eval(request: EvalRequest):
+def run_eval(request: EvalRequest, x_openai_api_key: Optional[str] = Header(None)):
     t0 = time.time()
     ts = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(t0))
 
@@ -88,8 +88,9 @@ def run_eval(request: EvalRequest):
 
     try:
         result = graph.invoke({
-            "input_text":  request.input_text,
-            "output_text": request.output_text
+            "input_text":     request.input_text,
+            "output_text":    request.output_text,
+            "custom_api_key": x_openai_api_key
         })
         log_proxy_event(ProxyLogEntry(
             id=str(uuid.uuid4()),
@@ -269,14 +270,21 @@ async def proxy_chat(request: ProxyChatRequest, x_openai_api_key: Optional[str] 
         )
 
     # ── Call LLM ───────────────────────────────────
-    api_key = x_openai_api_key or os.getenv("OPENAI_API_KEY")
-    if not api_key:
-        raise HTTPException(status_code=400, detail="No OpenAI API key provided. Set it in the Header modal.")
-
     try:
-        client = OpenAI(api_key=api_key)
+        if x_openai_api_key and x_openai_api_key.strip():
+            client = OpenAI(api_key=x_openai_api_key.strip())
+            target_model = request.model
+        else:
+            groq_key = os.getenv("GROQ_API_KEY")
+            if groq_key:
+                client = OpenAI(api_key=groq_key, base_url="https://api.groq.com/openai/v1")
+                target_model = "llama-3.3-70b-versatile"
+            else:
+                client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+                target_model = request.model
+
         completion = client.chat.completions.create(
-            model=request.model,
+            model=target_model,
             messages=[{"role": m.role, "content": m.content} for m in request.messages],
             temperature=request.temperature,
         )
@@ -306,8 +314,9 @@ async def proxy_chat(request: ProxyChatRequest, x_openai_api_key: Optional[str] 
     if should_evaluate and last_user_msg:
         try:
             result = graph.invoke({
-                "input_text":  last_user_msg,
-                "output_text": response_text
+                "input_text":     last_user_msg,
+                "output_text":    response_text,
+                "custom_api_key": x_openai_api_key
             })
             verdict = result["final_verdict"]
             score   = result["final_score"]

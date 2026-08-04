@@ -1,16 +1,10 @@
 import os
 import json
 from dotenv import load_dotenv
-from langchain_openai import ChatOpenAI
 from backend.eval.state import EvalState
+from backend.gateway.providers import get_llm
 
 load_dotenv()
-
-llm = ChatOpenAI(
-    model=os.getenv("EVAL_MODEL", "gpt-4o-mini"),
-    api_key=os.getenv("OPENAI_API_KEY"),
-    temperature=0
-)
 
 
 def _parse_response(content: str, fallback: dict) -> dict:
@@ -31,6 +25,7 @@ def accuracy_critic(state: EvalState) -> EvalState:
 
     input_text  = state.get("input_text", "")
     output_text = state.get("output_text", "")
+    custom_key  = state.get("custom_api_key")
 
     prompt = f"""You are a strict Factual Accuracy Critic for an AI evaluation system.
 
@@ -58,44 +53,43 @@ SCORING GUIDE:
 IMPORTANT:
 - Only evaluate factual accuracy. Ignore grammar, style, relevance, or completeness.
 - Be strict. If a fact cannot be verified, flag it as an issue.
-- passed = true only if score is 4 or 5.
 
-Return ONLY valid JSON. No explanation. No markdown.
-{{"score": <int 1-5>, "issues": ["<specific issue 1>", "<specific issue 2>"], "passed": <bool>}}"""
+Return ONLY valid JSON. No Markdown formatting. No backticks.
+{{
+    "accuracy_score": <int 1-5>,
+    "issues": ["<issue 1>", "<issue 2>"]
+}}"""
 
+    llm = get_llm(custom_key, model_type="eval")
     response = llm.invoke(prompt)
-    data = _parse_response(
-        response.content,
-        fallback={"score": 3, "issues": ["Could not parse accuracy verdict"], "passed": False}
-    )
+    fallback = {"accuracy_score": 3, "issues": ["Factual accuracy evaluation failed"]}
+    parsed   = _parse_response(response.content, fallback)
 
-    print(f"[CRITIC-ACCURACY] Score: {data['score']}/5 | Passed: {data['passed']}")
-    if data["issues"]:
-        for issue in data["issues"]:
-            print(f"  -> {issue}")
+    print(f"[CRITIC-ACCURACY] Score: {parsed.get('accuracy_score', 3)}/5")
+    for issue in parsed.get("issues", []):
+        print(f"[CRITIC-ACCURACY] Issue: {issue}")
 
     return {
-        "accuracy_score":  data["score"],
-        "accuracy_issues": data["issues"]
+        "accuracy_score":  parsed.get("accuracy_score", 3),
+        "accuracy_issues": parsed.get("issues", [])
     }
 
 
 # ─────────────────────────────────────────────
-# CRITIC 2 — RELEVANCE  (replaces Logic)
-# Checks: Does the answer address THIS specific question?
-# Why this matters: A response can be factually correct but
-# answer a completely different question. Accuracy won't catch
-# that. Relevance is a genuinely independent signal.
+# CRITIC 2 — RELEVANCE
+# Checks: Did it answer what was asked? Stay on topic?
+# Independent of: accuracy, completeness
 # ─────────────────────────────────────────────
 def relevance_critic(state: EvalState) -> EvalState:
-    print("\n[CRITIC-RELEVANCE] Evaluating relevance to question...")
+    print("\n[CRITIC-RELEVANCE] Evaluating relevance to user prompt...")
 
     input_text  = state.get("input_text", "")
     output_text = state.get("output_text", "")
+    custom_key  = state.get("custom_api_key")
 
     prompt = f"""You are a strict Relevance Critic for an AI evaluation system.
 
-Your job is to verify whether the AI output directly addresses the specific question asked.
+Your job is to check if the AI output directly answers what the user asked.
 
 QUESTION ASKED:
 {input_text}
@@ -104,111 +98,109 @@ AI OUTPUT TO EVALUATE:
 {output_text}
 
 EVALUATION CRITERIA:
-- Does the output answer THIS specific question, not a different one?
-- Is the response on-topic and directly related to what was asked?
-- Does it avoid answering a related but different question?
-- Is the response free from irrelevant tangents or deflection?
-- Would a user reading only this output feel their specific question was answered?
+- Does the output directly address the user's core intent?
+- Does it contain off-topic tangents or unprompted rambling?
+- Did it follow any structural constraints in the prompt? (e.g. "in 3 bullet points")
+- Is any section of the response completely irrelevant?
 
 SCORING GUIDE:
-5 = Directly and fully on-topic. Answers exactly what was asked.
-4 = Mostly on-topic. One minor tangent that does not detract from the answer.
-3 = Partially relevant. Addresses a related topic but not the specific question asked.
-2 = Mostly off-topic. Talks around the subject without answering.
-1 = Completely irrelevant. Does not address the question at all.
+5 = Directly answers the prompt. Zero fluff, fully aligned with intent.
+4 = Answers the prompt well. Minor irrelevant sentence or preamble.
+3 = Partially relevant. Addresses the topic but misses the specific question asked.
+2 = Mostly irrelevant. Goes off on a tangent, misses the core request.
+1 = Completely irrelevant. Does not address the prompt at all.
 
 IMPORTANT:
-- Only evaluate relevance. Ignore factual accuracy or completeness.
-- A short, focused answer can score 5. A long, wandering answer can score 1.
-- passed = true only if score is 4 or 5.
+- Only evaluate relevance. Assume the facts in the output are correct.
+- Penalize heavily if the AI answers a different question than what was asked.
 
-Return ONLY valid JSON. No explanation. No markdown.
-{{"score": <int 1-5>, "issues": ["<specific issue 1>", "<specific issue 2>"], "passed": <bool>}}"""
+Return ONLY valid JSON. No Markdown formatting. No backticks.
+{{
+    "relevance_score": <int 1-5>,
+    "issues": ["<issue 1>", "<issue 2>"]
+}}"""
 
+    llm = get_llm(custom_key, model_type="eval")
     response = llm.invoke(prompt)
-    data = _parse_response(
-        response.content,
-        fallback={"score": 3, "issues": ["Could not parse relevance verdict"], "passed": False}
-    )
+    fallback = {"relevance_score": 3, "issues": ["Relevance evaluation failed"]}
+    parsed   = _parse_response(response.content, fallback)
 
-    print(f"[CRITIC-RELEVANCE] Score: {data['score']}/5 | Passed: {data['passed']}")
-    if data["issues"]:
-        for issue in data["issues"]:
-            print(f"  -> {issue}")
+    print(f"[CRITIC-RELEVANCE] Score: {parsed.get('relevance_score', 3)}/5")
+    for issue in parsed.get("issues", []):
+        print(f"[CRITIC-RELEVANCE] Issue: {issue}")
 
     return {
-        "relevance_score":  data["score"],
-        "relevance_issues": data["issues"]
+        "relevance_score":  parsed.get("relevance_score", 3),
+        "relevance_issues": parsed.get("issues", [])
     }
 
 
 # ─────────────────────────────────────────────
 # CRITIC 3 — COMPLETENESS
-# Checks: Does the answer cover what the question requires?
-# Key fix: calibrates to question_type so a brief factual
-# answer ("What is Python?") is not penalized for lacking
-# ecosystem documentation.
+# Checks: Are all key sub-questions answered?
+# Independent of: accuracy, relevance
+# Calibrates strictness based on question_type.
 # ─────────────────────────────────────────────
 def completeness_critic(state: EvalState) -> EvalState:
-    print("\n[CRITIC-COMPLETENESS] Evaluating completeness...")
+    print("\n[CRITIC-COMPLETENESS] Evaluating answer completeness...")
 
     input_text    = state.get("input_text", "")
     output_text   = state.get("output_text", "")
     question_type = state.get("question_type", "factual")
+    custom_key    = state.get("custom_api_key")
 
-    calibration_notes = {
-        "factual":    "This is a simple factual or definition question. A concise, accurate answer is SUFFICIENT. Do NOT penalize for not being encyclopedic. A single correct sentence can score 4 or 5.",
-        "detailed":   "This question explicitly asks for depth or explanation. Expect comprehensive coverage of all aspects.",
-        "analytical": "This question requires reasoning, comparison, or evaluation. Expect structured analysis with supporting points."
-    }.get(question_type, "Evaluate completeness relative to what the question reasonably requires.")
+    calibrations = {
+        "factual":    "Expect a concise direct answer. Do NOT penalize for brevity if the fact is delivered.",
+        "detailed":   "Expect step-by-step detail, code examples if applicable, and deep context. Penalize missing steps.",
+        "analytical": "Expect pros/cons, trade-offs, and clear comparison points. Penalize shallow surface-level answers."
+    }
+    calibration_guide = calibrations.get(question_type, calibrations["factual"])
 
     prompt = f"""You are a strict Completeness Critic for an AI evaluation system.
 
-Your job is to verify whether the AI output fully addresses everything asked in the question.
+Your job is to check if the AI output fully covers everything requested.
 
 QUESTION ASKED:
 {input_text}
 
+QUESTION TYPE DETECTED: {question_type.upper()}
+CALIBRATION GUIDE: {calibration_guide}
+
 AI OUTPUT TO EVALUATE:
 {output_text}
 
-QUESTION TYPE: {question_type}
-CALIBRATION NOTE: {calibration_notes}
-
 EVALUATION CRITERIA:
-- Does the output address ALL parts of the question?
-- Are there sub-questions or implicit requirements that were ignored?
-- Is the response detailed enough for the COMPLEXITY and TYPE of this question?
-- Does it stop too early or leave important aspects unexplained?
-- Would a user still have unanswered questions after reading this output?
+- Are all parts of a multi-part question answered?
+- Is key necessary context or code missing?
+- Is the answer cut off mid-sentence?
+- Does it leave obvious follow-up questions unaddressed?
 
 SCORING GUIDE:
-5 = Fully addresses every part of the question. Nothing missing.
-4 = Addresses most parts. One minor aspect missing but core answer is complete.
-3 = Partially complete. Addresses the main question but misses important sub-parts.
-2 = Mostly incomplete. Answers only a fraction of what was asked.
-1 = Does not address the question at all.
+5 = Fully complete. Every implicit and explicit requirement answered.
+4 = Mostly complete. One minor detail missing that user could easily infer.
+3 = Moderately complete. Covers main point but leaves out important sub-points.
+2 = Incomplete. Missed major parts of the prompt.
+1 = Barely started or severely cut off.
 
 IMPORTANT:
-- Only evaluate completeness. Ignore factual accuracy or relevance.
-- Calibrate your expectations to the question type above.
-- passed = true only if score is 4 or 5.
+- Only evaluate completeness. Assume the facts present are accurate and relevant.
 
-Return ONLY valid JSON. No explanation. No markdown.
-{{"score": <int 1-5>, "issues": ["<specific issue 1>", "<specific issue 2>"], "passed": <bool>}}"""
+Return ONLY valid JSON. No Markdown formatting. No backticks.
+{{
+    "completeness_score": <int 1-5>,
+    "issues": ["<issue 1>", "<issue 2>"]
+}}"""
 
+    llm = get_llm(custom_key, model_type="eval")
     response = llm.invoke(prompt)
-    data = _parse_response(
-        response.content,
-        fallback={"score": 3, "issues": ["Could not parse completeness verdict"], "passed": False}
-    )
+    fallback = {"completeness_score": 3, "issues": ["Completeness evaluation failed"]}
+    parsed   = _parse_response(response.content, fallback)
 
-    print(f"[CRITIC-COMPLETENESS] Score: {data['score']}/5 | Passed: {data['passed']}")
-    if data["issues"]:
-        for issue in data["issues"]:
-            print(f"  -> {issue}")
+    print(f"[CRITIC-COMPLETENESS] Score: {parsed.get('completeness_score', 3)}/5")
+    for issue in parsed.get("issues", []):
+        print(f"[CRITIC-COMPLETENESS] Issue: {issue}")
 
     return {
-        "completeness_score":  data["score"],
-        "completeness_issues": data["issues"]
+        "completeness_score":  parsed.get("completeness_score", 3),
+        "completeness_issues": parsed.get("issues", [])
     }
