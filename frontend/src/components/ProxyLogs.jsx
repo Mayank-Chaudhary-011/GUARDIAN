@@ -180,15 +180,37 @@ export default function ProxyLogs() {
             </div>
           </div>
         </div>
-        <div style={{ display: 'flex', gap: 10 }}>
+        <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
           <input
             id="proxy-test-input"
             className="g-input"
+            style={{ flex: 1, minWidth: 200 }}
             placeholder="Type a prompt to fire through the GUARDIAN proxy…"
             value={testMsg}
             onChange={e => setTestMsg(e.target.value)}
             onKeyDown={e => e.key === 'Enter' && !sending && handleSend()}
           />
+          <button
+            type="button"
+            className="clear-btn"
+            onClick={loadProxySample}
+            style={{
+              borderColor: 'rgba(59,130,246,0.4)',
+              color: '#60a5fa',
+              background: 'rgba(59,130,246,0.1)',
+              fontWeight: 600,
+              display: 'flex',
+              alignItems: 'center',
+              gap: 6,
+              padding: '12px 18px',
+            }}
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/>
+              <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
+            </svg>
+            Load Sample
+          </button>
           <button
             className="eval-btn"
             style={{ width: 'auto', padding: '12px 22px' }}
