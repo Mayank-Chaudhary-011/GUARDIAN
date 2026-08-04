@@ -86,11 +86,13 @@ export async function proxyChat(messages, model = 'gpt-4o-mini', evaluate = true
   return res.json();
 }
 
-export async function fetchMlopsAudit(records = []) {
+export async function fetchMlopsAudit(records = [], modelKey = null) {
+  const body = { records };
+  if (modelKey) body.model_key = modelKey;
   const res = await fetch(`${BASE}/data/mlops-audit`, {
     method: 'POST',
     headers: getHeaders(),
-    body: JSON.stringify({ records }),
+    body: JSON.stringify(body),
   });
   if (!res.ok) throw new Error(await res.text());
   return res.json();

@@ -395,9 +395,17 @@ async def ws_proxy_logs(websocket: WebSocket):
 @router.post("/data/mlops-audit")
 def mlops_audit_endpoint(payload: dict = None):
     """
-    Evaluates dataset compatibility across Logistic Regression, Random Forest, 
-    Extra Trees, and Naive Bayes models to detect Underfitting vs Overfitting.
+    Runs MLOps model audit. Supports optional model_key to run a single selected model.
+    Accepts: { records: [...], model_key: "random_forest" | "kmeans" | ... }
     """
-    records = payload.get("records", []) if payload else []
-    return run_mlops_model_audit(records)
+    records   = payload.get("records", []) if payload else []
+    model_key = payload.get("model_key", None) if payload else None
+    return run_mlops_model_audit(records, model_key=model_key)
+
+
+@router.get("/data/model-catalogue")
+def model_catalogue_endpoint():
+    """Return the full ML model catalogue for the frontend model selector."""
+    from backend.memory.mlops_audit import get_model_catalogue
+    return get_model_catalogue()
 
