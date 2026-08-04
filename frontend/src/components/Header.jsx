@@ -91,25 +91,6 @@ export default function Header({ onHome }) {
 
         {/* Right side stats & BYOK key control */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'wrap' }}>
-          {onHome && (
-            <button
-              onClick={onHome}
-              style={{
-                display: 'flex', alignItems: 'center', gap: 6,
-                background: 'rgba(255,255,255,0.05)',
-                border: '1px solid rgba(255,255,255,0.12)',
-                color: '#94a3b8', padding: '6px 12px', borderRadius: 8,
-                fontSize: 11.5, fontWeight: 600, cursor: 'pointer'
-              }}
-            >
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <circle cx="12" cy="12" r="10"/>
-                <line x1="2" y1="12" x2="22" y2="12"/>
-                <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
-              </svg>
-              Landing Page
-            </button>
-          )}
           {/* BYOK API Key Button */}
           <button
             onClick={() => setShowModal(true)}
