@@ -79,10 +79,10 @@ export default function Pipeline({ activeNode, passedNodes, result }) {
 
   const isNodeGood = (id) => {
     if (!result) return true;
-    if (id === 'accuracy')    return (result.accuracy_score ?? 0) >= 4;
-    if (id === 'relevance')   return (result.relevance_score ?? 0) >= 4;
-    if (id === 'complete')    return (result.completeness_score ?? 0) >= 4;
-    if (id === 'adjudicator') return (result.final_score ?? 0) >= 3.5;
+    if (id === 'accuracy')    return (result.accuracy_score ?? 0) >= 3;
+    if (id === 'relevance')   return (result.relevance_score ?? 0) >= 3;
+    if (id === 'complete')    return (result.completeness_score ?? 0) >= 3;
+    if (id === 'adjudicator') return (result.final_score ?? 0) >= 3.0;
     if (id === 'verdict')     return result.final_verdict === 'PASS';
     return true;
   };
