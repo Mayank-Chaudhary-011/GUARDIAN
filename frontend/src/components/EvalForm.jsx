@@ -5,7 +5,7 @@ import VerdictCard from './VerdictCard';
 import Pipeline from './Pipeline';
 import MetricsRow from './MetricsRow';
 
-const PIPELINE_STEPS = ['input', 'accuracy', 'relevance', 'complete', 'verdict'];
+const PIPELINE_STEPS = ['input', 'accuracy', 'relevance', 'complete', 'adjudicator', 'verdict'];
 
 export default function EvalForm() {
   const [input,    setInput]    = useState('');
@@ -13,6 +13,7 @@ export default function EvalForm() {
   const [loading,  setLoading]  = useState(false);
   const [result,   setResult]   = useState(null);
   const [error,    setError]    = useState(null);
+  const [history,  setHistory]  = useState([]);
 
   // Improve Output
   const [improvingOut, setImprovingOut] = useState(false);
@@ -39,10 +40,10 @@ export default function EvalForm() {
   const animatePipeline = async () => {
     for (const node of PIPELINE_STEPS) {
       setActiveNode(node);
-      await new Promise(r => setTimeout(r, 270));
+      await new Promise(r => setTimeout(r, 220));
       setPassedNodes(prev => [...prev, node]);
       setActiveNode(null);
-      await new Promise(r => setTimeout(r, 70));
+      await new Promise(r => setTimeout(r, 60));
     }
   };
 
@@ -59,6 +60,12 @@ export default function EvalForm() {
       const data = await runEval(input, output);
       await animatePipeline();
       setResult(data);
+      setHistory(prev => [{
+        id: Date.now(),
+        prompt: input,
+        result: data,
+        time: 'just now'
+      }, ...prev].slice(0, 6));
     } catch (err) {
       const detail = err?.detail ?? err;
       if (typeof detail === 'object' && detail.reason) {
@@ -111,18 +118,12 @@ export default function EvalForm() {
 
   return (
     <div ref={formRef} style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-      {/* Pipeline */}
-      <Pipeline activeNode={activeNode} passedNodes={passedNodes} />
-
-      {/* Metrics — only shown after a result */}
-      {result && <MetricsRow result={result} />}
-
-      {/* Two-column layout */}
+      {/* ── Two-column main section ── */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20, alignItems: 'start' }}>
 
         {/* ── LEFT: Input Panel ── */}
         <div className="card">
-          <div className="sec-label">Input Panel</div>
+          <div className="sec-label">Evaluate AI Output</div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
 
             {/* Prompt textarea */}
@@ -211,7 +212,7 @@ export default function EvalForm() {
             {improvedPrompt && (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                 <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--purple)', letterSpacing: 1.5, textTransform: 'uppercase' }}>
-                  ✦ Improved Prompt
+                  Improved Prompt
                 </div>
                 <div className="improved-block prompt">
                   {improvedPrompt}
@@ -236,7 +237,7 @@ export default function EvalForm() {
         <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
           <div className="card" style={{ padding: 0 }}>
             <div style={{ padding: '20px 24px 0' }}>
-              <div className="sec-label">Evaluation Output</div>
+              <div className="sec-label">Critic Scores & Verdict</div>
             </div>
             <div style={{ padding: '0 24px 24px' }}>
               <VerdictCard result={result} />
@@ -274,6 +275,64 @@ export default function EvalForm() {
           )}
         </div>
       </div>
+
+      {/* ── Evaluation Pipeline ── */}
+      <Pipeline activeNode={activeNode} passedNodes={passedNodes} result={result} />
+
+      {/* Metrics — shown after a result */}
+      {result && <MetricsRow result={result} />}
+
+      {/* ── Recent Evaluations (Matching Screenshot 1) ── */}
+      {history.length > 0 && (
+        <div className="card">
+          <div className="sec-label">Recent Evaluations</div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: 14 }}>
+            {history.map(item => {
+              const isPass = item.result.final_verdict === 'PASS';
+              const color  = isPass ? '#10b981' : '#f43f5e';
+              return (
+                <div key={item.id} style={{
+                  background: '#000000',
+                  border: `1px solid ${isPass ? 'rgba(16,185,129,0.3)' : 'rgba(244,63,94,0.3)'}`,
+                  borderRadius: 10, padding: 14,
+                  display: 'flex', flexDirection: 'column', gap: 10
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <span className={`badge ${isPass ? 'badge-pass' : 'badge-fail'}`}>
+                      {item.result.final_verdict}
+                    </span>
+                    <span style={{ fontSize: 16, fontWeight: 800, color, fontVariantNumeric: 'tabular-nums' }}>
+                      {item.result.final_score.toFixed(2)}/5
+                    </span>
+                  </div>
+                  <p style={{
+                    fontSize: 12, color: 'var(--text-dim)',
+                    overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap'
+                  }}>
+                    {item.prompt}
+                  </p>
+                  {/* Mini score bars ACC | REL | COM */}
+                  <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+                    <div style={{ flex: 1, height: 4, borderRadius: 4, background: 'rgba(255,255,255,0.08)', overflow: 'hidden' }}>
+                      <div style={{ width: `${(item.result.accuracy_score / 5) * 100}%`, height: '100%', background: '#3b82f6' }} />
+                    </div>
+                    <div style={{ flex: 1, height: 4, borderRadius: 4, background: 'rgba(255,255,255,0.08)', overflow: 'hidden' }}>
+                      <div style={{ width: `${(item.result.relevance_score / 5) * 100}%`, height: '100%', background: '#8b5cf6' }} />
+                    </div>
+                    <div style={{ flex: 1, height: 4, borderRadius: 4, background: 'rgba(255,255,255,0.08)', overflow: 'hidden' }}>
+                      <div style={{ width: `${(item.result.completeness_score / 5) * 100}%`, height: '100%', background: '#10b981' }} />
+                    </div>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 9.5, color: 'var(--muted-up)' }}>
+                    <span>ACC / REL / COM</span>
+                    <span>{item.time}</span>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
