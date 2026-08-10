@@ -119,8 +119,8 @@ export default function Pipeline({ activeNode, passedNodes, result }) {
                 <span className="nname">{node.label}</span>
                 {scoreText && (
                   <span style={{
-                    fontSize: 11, fontWeight: 700, marginTop: 2,
-                    color: isGood ? '#10b981' : '#f43f5e',
+                    fontSize: 11, fontWeight: 600, marginTop: 2,
+                    color: isGood ? 'var(--green)' : 'var(--red)',
                     fontVariantNumeric: 'tabular-nums'
                   }}>
                     {scoreText}

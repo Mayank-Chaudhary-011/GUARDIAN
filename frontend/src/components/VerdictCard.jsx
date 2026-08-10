@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { gsap } from 'gsap';
 
-const CIRC = 207; // 2πr where r=33
+const CIRC = 188; // 2πr where r=30 (matches updated ring-wrap 72px SVG)
 
 function ScoreRing({ score, color, label, delay = 0 }) {
   const arcRef  = useRef(null);
@@ -19,19 +19,19 @@ function ScoreRing({ score, color, label, delay = 0 }) {
   return (
     <div className="ctile scored">
       <div className="ring-wrap">
-        <svg width="80" height="80" viewBox="0 0 80 80">
-          <circle className="rbg" cx="40" cy="40" r="33" />
+        <svg width="72" height="72" viewBox="0 0 72 72">
+          <circle className="rbg" cx="36" cy="36" r="30" />
           <circle
             ref={arcRef}
             className="rarc"
-            cx="40" cy="40" r="33"
+            cx="36" cy="36" r="30"
             stroke={color}
             strokeDasharray={CIRC}
             strokeDashoffset={CIRC}
           />
         </svg>
         <div className="ring-center">
-          <span ref={numRef} className="rnum" style={{ color: '#2d3748' }}>
+          <span ref={numRef} className="rnum" style={{ color: 'var(--text-muted)' }}>
             {score ?? '—'}
           </span>
           <span className="rdenom">/5</span>
@@ -88,8 +88,8 @@ export default function VerdictCard({ result }) {
               <div style={{ display: 'flex', gap: 6, marginTop: 4, flexWrap: 'wrap' }}>
                 <span className="qtag">{result.question_type}</span>
                 {result.provider && (
-                  <span className="qtag" style={{ background: 'rgba(59,130,246,0.15)', color: '#60a5fa', borderColor: 'rgba(59,130,246,0.3)' }}>
-                    ⚡ {result.provider}
+                  <span className="qtag">
+                    {result.provider}
                   </span>
                 )}
               </div>
@@ -140,8 +140,8 @@ export default function VerdictCard({ result }) {
       {/* Critic score rings */}
       <div className="critics-row">
         <ScoreRing score={result.accuracy_score}     color="#3b82f6" label="Accuracy"     delay={0} />
-        <ScoreRing score={result.relevance_score}    color="#8b5cf6" label="Relevance"    delay={0.08} />
-        <ScoreRing score={result.completeness_score} color="#10b981" label="Completeness" delay={0.16} />
+        <ScoreRing score={result.relevance_score}    color="#6366f1" label="Relevance"    delay={0.08} />
+        <ScoreRing score={result.completeness_score} color="#22c55e" label="Completeness" delay={0.16} />
       </div>
     </div>
   );
