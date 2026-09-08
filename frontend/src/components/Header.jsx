@@ -77,23 +77,37 @@ export default function Header({ onHome }) {
 
         {/* Right side stats & BYOK key control */}
         <div className="app-header-controls">
+          {/* Default Engine Indicator */}
+          <div style={{
+            display: 'flex', alignItems: 'center', gap: 5,
+            padding: '4px 10px', borderRadius: 6,
+            background: apiKey ? 'rgba(59,130,246,0.08)' : 'rgba(34,197,94,0.08)',
+            border: `1px solid ${apiKey ? 'rgba(59,130,246,0.2)' : 'rgba(34,197,94,0.2)'}`,
+            fontSize: 11, fontWeight: 600,
+            color: apiKey ? '#93c5fd' : '#4ade80'
+          }}>
+            <span style={{ fontSize: 10 }}>{apiKey ? '🔑' : '⚡'}</span>
+            {apiKey ? 'Custom OpenAI' : 'Free Tier: NVIDIA Nemotron'}
+          </div>
+
           {/* BYOK API Key Button */}
           <button
             onClick={() => setShowModal(true)}
             style={{
               display: 'flex', alignItems: 'center', gap: 5,
-              background: 'transparent',
-              border: `1px solid ${apiKey ? 'rgba(59,130,246,0.3)' : 'rgba(255,255,255,0.08)'}`,
-              color: apiKey ? '#93c5fd' : '#71717a',
+              background: apiKey ? 'rgba(59,130,246,0.12)' : 'transparent',
+              border: `1px solid ${apiKey ? 'rgba(59,130,246,0.35)' : 'rgba(255,255,255,0.08)'}`,
+              color: apiKey ? '#93c5fd' : '#a1a1aa',
               padding: '5px 12px', borderRadius: 7,
               fontSize: 12, fontWeight: 500, cursor: 'pointer',
-              transition: 'border-color 0.15s, color 0.15s',
+              transition: 'all 0.15s ease',
             }}
+            title="Configure your own OpenAI API key"
           >
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
             </svg>
-            {apiKey ? (apiKey.startsWith('nvapi-') ? '⚡ NVIDIA Active' : 'Key Active') : 'Set API Key'}
+            {apiKey ? 'OpenAI Key Active' : 'Use Own OpenAI Key'}
           </button>
 
           {/* Divider */}
@@ -145,52 +159,67 @@ export default function Header({ onHome }) {
           background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(6px)',
           zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20
         }}>
-          <div className="card" style={{ width: '100%', maxWidth: 460, background: '#161618', border: '1px solid rgba(255,255,255,0.1)' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-              <div style={{ fontSize: 14.5, fontWeight: 600, color: '#f4f4f5', display: 'flex', alignItems: 'center', gap: 8 }}>
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#71717a" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <div className="card" style={{ width: '100%', maxWidth: 470, background: '#161618', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 12, padding: '22px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
+              <div style={{ fontSize: 15, fontWeight: 600, color: '#f4f4f5', display: 'flex', alignItems: 'center', gap: 8 }}>
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#60a5fa" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
                 </svg>
-                Bring Your Own API Key (NVIDIA / OpenAI)
+                Use Your Own OpenAI Key
               </div>
               <button
                 onClick={() => setShowModal(false)}
-                style={{ background: 'none', border: 'none', color: '#52525b', cursor: 'pointer', fontSize: 16, lineHeight: 1 }}
+                style={{ background: 'none', border: 'none', color: '#71717a', cursor: 'pointer', fontSize: 18, lineHeight: 1 }}
               >
                 ✕
               </button>
             </div>
-            <div style={{ fontSize: 12.5, color: '#71717a', lineHeight: 1.6, marginBottom: 14 }}>
-              Enter your <strong>NVIDIA NIM Key</strong> (<code style={{ color: '#86efac' }}>nvapi-...</code> for Nemotron) or <strong>OpenAI Key</strong> (<code style={{ color: '#93c5fd' }}>sk-...</code>). Stored locally in your browser only.
+
+            <div style={{
+              background: 'rgba(34,197,94,0.06)', border: '1px solid rgba(34,197,94,0.18)',
+              borderRadius: 8, padding: '10px 12px', marginBottom: 14, fontSize: 12, color: '#86efac', lineHeight: 1.5
+            }}>
+              ⚡ <strong>Free Tier Active:</strong> GUARDIAN automatically runs evaluations on our backend using <strong>NVIDIA Nemotron 70B</strong>. No setup required!
             </div>
+
+            <div style={{ fontSize: 12.5, color: '#a1a1aa', lineHeight: 1.6, marginBottom: 14 }}>
+              If you have your own OpenAI account or if the server's free-tier rate limits are reached, you can connect your personal OpenAI API key here. It will be stored <strong>only in your browser's local storage</strong>.
+            </div>
+
             <input
               type="password"
-              placeholder="nvapi-... or sk-proj-..."
+              placeholder="sk-proj-... or sk-..."
               value={inputVal}
               onChange={e => setInputVal(e.target.value)}
               className="g-input"
               style={{ fontFamily: 'monospace', marginBottom: 16, fontSize: 13 }}
             />
-            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
-              {apiKey && (
+
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <span style={{ fontSize: 11.5, color: '#71717a' }}>
+                {apiKey ? '🟢 Using custom OpenAI key' : '🟢 Using server NVIDIA Nemotron'}
+              </span>
+              <div style={{ display: 'flex', gap: 8 }}>
+                {apiKey && (
+                  <button
+                    onClick={handleClear}
+                    style={{
+                      background: 'transparent', border: '1px solid rgba(239,68,68,0.25)',
+                      color: '#ef4444', padding: '7px 14px', borderRadius: 7, fontSize: 12.5, cursor: 'pointer',
+                      fontFamily: 'inherit',
+                    }}
+                  >
+                    Reset to Free Tier
+                  </button>
+                )}
                 <button
-                  onClick={handleClear}
-                  style={{
-                    background: 'transparent', border: '1px solid rgba(239,68,68,0.2)',
-                    color: '#ef4444', padding: '7px 14px', borderRadius: 7, fontSize: 12.5, cursor: 'pointer',
-                    fontFamily: 'inherit',
-                  }}
+                  onClick={handleSave}
+                  className="eval-btn"
+                  style={{ width: 'auto', padding: '7px 18px', fontSize: 13 }}
                 >
-                  Remove Key
+                  Save Key
                 </button>
-              )}
-              <button
-                onClick={handleSave}
-                className="eval-btn"
-                style={{ width: 'auto', padding: '7px 18px', fontSize: 13 }}
-              >
-                Save Key
-              </button>
+              </div>
             </div>
           </div>
         </div>
