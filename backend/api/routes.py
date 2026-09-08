@@ -9,6 +9,7 @@ from openai import OpenAI
 from backend.eval.graph import build_eval_graph
 from backend.eval.improver import improve_output
 from backend.gateway.health import check_all_providers
+from backend.gateway.providers import is_nvidia_available
 from backend.memory.supabase_memory import get_average_score, get_pass_rate
 from backend.memory.token_optimizer import count_tokens_approx
 from backend.api.security import check_request
@@ -22,6 +23,62 @@ from backend.proxy.logger import (
 
 router = APIRouter()
 graph = build_eval_graph()
+
+
+def _resolve_provider_name(custom_key: str | None) -> str:
+    """Returns a human-readable provider label for the eval response card."""
+    if custom_key and custom_key.strip():
+        return "NVIDIA (Nemotron-70B)" if custom_key.strip().startswith("nvapi-") else "OpenAI (gpt-4o)"
+    if is_nvidia_available():
+        return "NVIDIA (Nemotron-70B)"
+    if os.getenv("OPENAI_API_KEY"):
+        return "OpenAI (gpt-4o-mini)"
+    return "Groq (llama-3.3-70b)"
+
+
+def _call_openai_compat(messages: list, model: str, temperature: float, custom_key: str | None) -> str:
+    """
+    Single unified function for proxy/chat LLM calls.
+    Uses the same validated provider hierarchy as providers.get_llm():
+      1. Custom browser key (nvapi- → NVIDIA, sk- → OpenAI)
+      2. Server NVIDIA key  — ONLY if startup validation passed
+      3. Server OpenAI key
+      4. Server Groq key
+    Never raises a provider 404 to the caller.
+    """
+    if custom_key and custom_key.strip():
+        k = custom_key.strip()
+        if k.startswith("nvapi-"):
+            client = OpenAI(api_key=k, base_url="https://integrate.api.nvidia.com/v1")
+            target  = os.getenv("NVIDIA_MODEL", "nvidia/llama-3.1-nemotron-70b-instruct")
+        else:
+            client = OpenAI(api_key=k)
+            target  = model
+        resp = client.chat.completions.create(model=target, messages=messages, temperature=temperature)
+        return resp.choices[0].message.content
+
+    # Server keys — follow validated provider hierarchy
+    if is_nvidia_available():
+        nvidia_key = os.getenv("NVIDIA_API_KEY", "").strip()
+        client = OpenAI(api_key=nvidia_key, base_url="https://integrate.api.nvidia.com/v1")
+        target  = os.getenv("NVIDIA_MODEL", "nvidia/llama-3.1-nemotron-70b-instruct")
+        resp = client.chat.completions.create(model=target, messages=messages, temperature=temperature)
+        return resp.choices[0].message.content
+
+    openai_key = os.getenv("OPENAI_API_KEY", "").strip()
+    if openai_key:
+        client = OpenAI(api_key=openai_key)
+        resp = client.chat.completions.create(model=model, messages=messages, temperature=temperature)
+        return resp.choices[0].message.content
+
+    groq_key = os.getenv("GROQ_API_KEY", "").strip()
+    if groq_key:
+        client = OpenAI(api_key=groq_key, base_url="https://api.groq.com/openai/v1")
+        groq_model = os.getenv("GROQ_MODEL", "llama-3.3-70b-versatile")
+        resp = client.chat.completions.create(model=groq_model, messages=messages, temperature=temperature)
+        return resp.choices[0].message.content
+
+    raise RuntimeError("No LLM provider is configured. Set NVIDIA_API_KEY, OPENAI_API_KEY, or GROQ_API_KEY.")
 
 
 class EvalRequest(BaseModel):
@@ -106,15 +163,7 @@ def run_eval(request: EvalRequest, x_openai_api_key: Optional[str] = Header(None
             tokens_saved=result.get("tokens_saved", 0),
             sampled=True
         ))
-        if x_openai_api_key and x_openai_api_key.strip():
-            k = x_openai_api_key.strip()
-            provider_name = "NVIDIA (Nemotron-70B)" if k.startswith("nvapi-") else "OpenAI (gpt-4o)"
-        elif os.getenv("NVIDIA_API_KEY"):
-            provider_name = "NVIDIA (Nemotron-70B)"
-        elif os.getenv("OPENAI_API_KEY"):
-            provider_name = "OpenAI (gpt-4o-mini)"
-        else:
-            provider_name = "Groq (llama-3.3-70b)"
+        provider_name = _resolve_provider_name(x_openai_api_key)
         return EvalResponse(
             final_verdict=result["final_verdict"],
             final_score=result["final_score"],
@@ -280,58 +329,10 @@ async def proxy_chat(request: ProxyChatRequest, x_openai_api_key: Optional[str] 
             }
         )
 
-    # ── Call LLM ───────────────────────────────────
+    # ── Call LLM via unified validated provider helper ──────────────────────
     try:
-        if x_openai_api_key and x_openai_api_key.strip():
-            k = x_openai_api_key.strip()
-            if k.startswith("nvapi-"):
-                client = OpenAI(api_key=k, base_url="https://integrate.api.nvidia.com/v1")
-                target_model = os.getenv("NVIDIA_MODEL", "nvidia/llama-3.1-nemotron-70b-instruct")
-            else:
-                client = OpenAI(api_key=k)
-                target_model = request.model
-        else:
-            nvidia_key = os.getenv("NVIDIA_API_KEY")
-            openai_key = os.getenv("OPENAI_API_KEY")
-
-            if nvidia_key and nvidia_key.strip():
-                try:
-                    nv_client = OpenAI(api_key=nvidia_key.strip(), base_url="https://integrate.api.nvidia.com/v1")
-                    completion = nv_client.chat.completions.create(
-                        model=os.getenv("NVIDIA_MODEL", "nvidia/llama-3.1-nemotron-70b-instruct"),
-                        messages=[{"role": m.role, "content": m.content} for m in request.messages],
-                        temperature=request.temperature,
-                    )
-                    response_text = completion.choices[0].message.content
-                except Exception:
-                    if openai_key and openai_key.strip():
-                        oa_client = OpenAI(api_key=openai_key.strip())
-                        completion = oa_client.chat.completions.create(
-                            model=request.model,
-                            messages=[{"role": m.role, "content": m.content} for m in request.messages],
-                            temperature=request.temperature,
-                        )
-                        response_text = completion.choices[0].message.content
-                    else:
-                        raise
-            elif openai_key and openai_key.strip():
-                oa_client = OpenAI(api_key=openai_key.strip())
-                completion = oa_client.chat.completions.create(
-                    model=request.model,
-                    messages=[{"role": m.role, "content": m.content} for m in request.messages],
-                    temperature=request.temperature,
-                )
-                response_text = completion.choices[0].message.content
-            elif os.getenv("GROQ_API_KEY"):
-                client = OpenAI(api_key=os.getenv("GROQ_API_KEY").strip(), base_url="https://api.groq.com/openai/v1")
-                completion = client.chat.completions.create(
-                    model=os.getenv("GROQ_MODEL", "llama-3.3-70b-versatile"),
-                    messages=[{"role": m.role, "content": m.content} for m in request.messages],
-                    temperature=request.temperature,
-                )
-                response_text = completion.choices[0].message.content
-            else:
-                raise RuntimeError("No LLM provider key available")
+        messages = [{"role": m.role, "content": m.content} for m in request.messages]
+        response_text = _call_openai_compat(messages, request.model, request.temperature, x_openai_api_key)
     except Exception as e:
         raise HTTPException(status_code=502, detail=f"LLM call failed: {str(e)}")
 
