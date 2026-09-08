@@ -44,10 +44,19 @@ def get_llm(custom_api_key: str = None, model_type: str = "eval"):
     if nvidia_key and nvidia_key.strip():
         return get_nvidia(api_key=nvidia_key.strip(), temperature=0.0)
 
+    openai_key = os.getenv("OPENAI_API_KEY")
+    if openai_key and openai_key.strip():
+        model = "gpt-4o" if model_type == "primary" else "gpt-4o-mini"
+        return ChatOpenAI(
+            model=model,
+            api_key=openai_key.strip(),
+            temperature=0
+        )
+
     groq_key = os.getenv("GROQ_API_KEY")
     if groq_key and groq_key.strip():
         return ChatGroq(
-            model="llama-3.3-70b-versatile",
+            model=os.getenv("GROQ_MODEL", "llama-3.3-70b-versatile"),
             api_key=groq_key.strip(),
             temperature=0
         )
@@ -67,15 +76,15 @@ def get_openai(api_key: str = None):
 
 def get_groq():
     return ChatGroq(
-        model="llama-3.3-70b-versatile",
+        model=os.getenv("GROQ_MODEL", "llama-3.3-70b-versatile"),
         api_key=os.getenv("GROQ_API_KEY"),
         temperature=0.7
     )
 
 PROVIDERS = {
     "nvidia": get_nvidia,
-    "groq":   get_groq,
     "openai": get_openai,
+    "groq":   get_groq,
 }
 
-FALLBACK_CHAIN = ["nvidia", "groq", "openai"]
+FALLBACK_CHAIN = ["nvidia", "openai", "groq"]

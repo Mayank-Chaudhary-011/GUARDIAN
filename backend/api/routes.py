@@ -295,14 +295,15 @@ async def proxy_chat(request: ProxyChatRequest, x_openai_api_key: Optional[str] 
             if nvidia_key and nvidia_key.strip():
                 client = OpenAI(api_key=nvidia_key.strip(), base_url="https://integrate.api.nvidia.com/v1")
                 target_model = os.getenv("NVIDIA_MODEL", "nvidia/llama-3.1-nemotron-70b-instruct")
+            elif os.getenv("OPENAI_API_KEY"):
+                client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+                target_model = request.model
+            elif os.getenv("GROQ_API_KEY"):
+                client = OpenAI(api_key=os.getenv("GROQ_API_KEY").strip(), base_url="https://api.groq.com/openai/v1")
+                target_model = os.getenv("GROQ_MODEL", "llama-3.3-70b-versatile")
             else:
-                groq_key = os.getenv("GROQ_API_KEY")
-                if groq_key and groq_key.strip():
-                    client = OpenAI(api_key=groq_key.strip(), base_url="https://api.groq.com/openai/v1")
-                    target_model = "llama-3.3-70b-versatile"
-                else:
-                    client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
-                    target_model = request.model
+                client = OpenAI(api_key="")
+                target_model = request.model
 
         completion = client.chat.completions.create(
             model=target_model,
