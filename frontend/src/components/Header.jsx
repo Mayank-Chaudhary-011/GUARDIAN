@@ -93,7 +93,7 @@ export default function Header({ onHome }) {
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
             </svg>
-            {apiKey ? 'Key Active' : 'Set API Key'}
+            {apiKey ? (apiKey.startsWith('nvapi-') ? '⚡ NVIDIA Active' : 'Key Active') : 'Set API Key'}
           </button>
 
           {/* Divider */}
@@ -151,7 +151,7 @@ export default function Header({ onHome }) {
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#71717a" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
                 </svg>
-                Bring Your Own OpenAI API Key
+                Bring Your Own API Key (NVIDIA / OpenAI)
               </div>
               <button
                 onClick={() => setShowModal(false)}
@@ -161,11 +161,11 @@ export default function Header({ onHome }) {
               </button>
             </div>
             <div style={{ fontSize: 12.5, color: '#71717a', lineHeight: 1.6, marginBottom: 14 }}>
-              Enter your OpenAI API Key to run evaluations using your own quota. Your key is stored only in browser local storage.
+              Enter your <strong>NVIDIA NIM Key</strong> (<code style={{ color: '#86efac' }}>nvapi-...</code> for Nemotron) or <strong>OpenAI Key</strong> (<code style={{ color: '#93c5fd' }}>sk-...</code>). Stored locally in your browser only.
             </div>
             <input
               type="password"
-              placeholder="sk-proj-..."
+              placeholder="nvapi-... or sk-proj-..."
               value={inputVal}
               onChange={e => setInputVal(e.target.value)}
               className="g-input"

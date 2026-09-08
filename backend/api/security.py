@@ -31,10 +31,13 @@ _INJECTION_PATTERNS = [
     # Credential extraction attempts
     r"(reveal|show|print|output|give\s+me|return|tell\s+me|what\s+is)\s+(your\s+)?(api[_\s]?key|password|secret|token|credential|private\s+key)",
     r"openai[_\s]?api[_\s]?key",
+    r"nvidia[_\s]?api[_\s]?key",
     r"groq[_\s]?api[_\s]?key",
     r"supabase[_\s]?(url|key)",
     r"sk-[a-zA-Z0-9]{20,}",          # OpenAI key pattern appearing in output
+    r"nvapi-[a-zA-Z0-9\-_]{20,}",    # NVIDIA key pattern appearing in output
     r"\bOPENAI_API_KEY\b",
+    r"\bNVIDIA_API_KEY\b",
     r"\bGROQ_API_KEY\b",
     r"\.env\b",
 

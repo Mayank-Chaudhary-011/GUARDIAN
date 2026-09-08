@@ -13,6 +13,12 @@ openai_breaker = pybreaker.CircuitBreaker(
     name="openai"
 )
 
+nvidia_breaker = pybreaker.CircuitBreaker(
+    fail_max=3,
+    reset_timeout=30,
+    name="nvidia"
+)
+
 groq_breaker = pybreaker.CircuitBreaker(
     fail_max=3,
     reset_timeout=30,
@@ -26,6 +32,7 @@ ollama_breaker = pybreaker.CircuitBreaker(
 )
 
 BREAKERS = {
+    "nvidia": nvidia_breaker,
     "openai": openai_breaker,
     "groq":   groq_breaker,
     "ollama": ollama_breaker

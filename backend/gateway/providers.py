@@ -6,26 +6,49 @@ from langchain_ollama import ChatOllama
 
 load_dotenv()
 
-def get_llm(custom_openai_key: str = None, model_type: str = "eval"):
+NVIDIA_BASE_URL = "https://integrate.api.nvidia.com/v1"
+DEFAULT_NVIDIA_MODEL = os.getenv("NVIDIA_MODEL", "nvidia/llama-3.1-nemotron-70b-instruct")
+
+def get_nvidia(api_key: str = None, model: str = None, temperature: float = 0.0):
+    key = api_key or os.getenv("NVIDIA_API_KEY")
+    return ChatOpenAI(
+        model=model or DEFAULT_NVIDIA_MODEL,
+        api_key=key,
+        base_url=NVIDIA_BASE_URL,
+        temperature=temperature
+    )
+
+def get_llm(custom_api_key: str = None, model_type: str = "eval"):
     """
     Returns the appropriate LLM instance:
-    - If custom_openai_key is provided -> Use OpenAI with custom key.
-    - Default -> Use Groq (llama-3.3-70b-versatile) for 100% FREE server usage.
-    - Fallback -> OpenAI server environment key if Groq unavailable.
+    - If custom_api_key is provided:
+        - Starts with 'nvapi-' -> Use NVIDIA Nemotron with custom key.
+        - Otherwise -> Use OpenAI with custom key.
+    - Default server keys:
+        - If NVIDIA_API_KEY is configured -> Use NVIDIA Nemotron (nvidia/llama-3.1-nemotron-70b-instruct).
+        - If GROQ_API_KEY is configured -> Use Groq.
+        - Fallback -> OpenAI server environment key.
     """
-    if custom_openai_key and custom_openai_key.strip():
+    if custom_api_key and custom_api_key.strip():
+        k = custom_api_key.strip()
+        if k.startswith("nvapi-"):
+            return get_nvidia(api_key=k, temperature=0.0)
         model = "gpt-4o" if model_type == "primary" else "gpt-4o-mini"
         return ChatOpenAI(
             model=model,
-            api_key=custom_openai_key.strip(),
+            api_key=k,
             temperature=0
         )
     
+    nvidia_key = os.getenv("NVIDIA_API_KEY")
+    if nvidia_key and nvidia_key.strip():
+        return get_nvidia(api_key=nvidia_key.strip(), temperature=0.0)
+
     groq_key = os.getenv("GROQ_API_KEY")
-    if groq_key:
+    if groq_key and groq_key.strip():
         return ChatGroq(
             model="llama-3.3-70b-versatile",
-            api_key=groq_key,
+            api_key=groq_key.strip(),
             temperature=0
         )
     
@@ -50,8 +73,9 @@ def get_groq():
     )
 
 PROVIDERS = {
+    "nvidia": get_nvidia,
     "groq":   get_groq,
     "openai": get_openai,
 }
 
-FALLBACK_CHAIN = ["groq", "openai"]
+FALLBACK_CHAIN = ["nvidia", "groq", "openai"]

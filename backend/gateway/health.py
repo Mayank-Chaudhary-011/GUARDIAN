@@ -15,6 +15,10 @@ logger = logging.getLogger(__name__)
 # ─────────────────────────────────────────────
 
 PROVIDER_HEALTH_ENDPOINTS = {
+    "nvidia": {
+        "url":     "https://integrate.api.nvidia.com/v1/models",
+        "headers": lambda: {"Authorization": f"Bearer {os.getenv('NVIDIA_API_KEY', '')}"}
+    },
     "openai": {
         "url":     "https://api.openai.com/v1/models",
         "headers": lambda: {"Authorization": f"Bearer {os.getenv('OPENAI_API_KEY', '')}"}
@@ -67,6 +71,6 @@ async def check_provider_health(provider_name: str) -> dict:
 
 async def check_all_providers() -> dict:
     results = {}
-    for provider in ["openai", "groq", "ollama"]:
+    for provider in ["nvidia", "openai", "groq", "ollama"]:
         results[provider] = await check_provider_health(provider)
     return results
