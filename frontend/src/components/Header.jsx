@@ -39,9 +39,11 @@ export default function Header({ onHome }) {
     staleTime: 5000,
   });
 
-  const passRate = data?.pass_rate_pct != null ? Math.round(data.pass_rate_pct) : 60;
-  const avgScore = data?.avg_score_pass_runs != null ? data.avg_score_pass_runs.toFixed(2) : '4.78';
-  const isReg    = data?.regression?.status === 'REGRESSION';
+  const passRate = data?.pass_rate_pct  != null ? Math.round(data.pass_rate_pct)           : null;
+  const avgScore  = data?.avg_score_pass_runs != null ? data.avg_score_pass_runs.toFixed(2)  : null;
+  const isReg     = data?.regression?.status === 'REGRESSION';
+  const passRateDisplay = passRate != null ? `${passRate}%`    : '…';
+  const avgScoreDisplay = avgScore  != null ? `${avgScore}/5` : '…';
 
   return (
     <>
@@ -115,14 +117,14 @@ export default function Header({ onHome }) {
 
           {/* Pass Rate */}
           <Stat
-            value={`${passRate}%`}
+            value={passRateDisplay}
             label="Pass Rate"
-            color={passRate >= 70 ? '#22c55e' : passRate >= 50 ? '#f59e0b' : '#ef4444'}
+            color={passRate == null ? '#71717a' : passRate >= 70 ? '#22c55e' : passRate >= 50 ? '#f59e0b' : '#ef4444'}
           />
 
           {/* Avg Score */}
           <Stat
-            value={`${avgScore}/5`}
+            value={avgScoreDisplay}
             label="Avg Score"
             color="#f4f4f5"
           />

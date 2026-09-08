@@ -201,9 +201,25 @@ async def health():
 
 @router.get("/stats")
 def stats():
+    # Try Supabase first
+    db_pass_rate  = get_pass_rate(limit=10)
+    db_avg_score  = get_average_score(limit=10)
+
+    # If Supabase has no data yet, fall back to the in-memory proxy logs
+    # (populated on every eval/proxy call this session)
+    if db_pass_rate == 0.0 and db_avg_score == 0.0:
+        logs = get_proxy_logs(limit=50)
+        sampled = [l for l in logs if l.sampled and l.verdict is not None]
+        if sampled:
+            total  = len(sampled)
+            passed = sum(1 for l in sampled if l.verdict == "PASS")
+            scores = [l.score for l in sampled if l.verdict == "PASS" and l.score is not None]
+            db_pass_rate = round(passed / total * 100, 1)
+            db_avg_score = round(sum(scores) / len(scores), 2) if scores else 0.0
+
     return {
-        "avg_score_pass_runs": get_average_score(limit=10),
-        "pass_rate_pct":       get_pass_rate(limit=10)
+        "avg_score_pass_runs": db_avg_score,
+        "pass_rate_pct":       db_pass_rate
     }
 
 
