@@ -111,10 +111,10 @@ def run_eval(request: EvalRequest, x_openai_api_key: Optional[str] = Header(None
             provider_name = "NVIDIA (Nemotron-70B)" if k.startswith("nvapi-") else "OpenAI (gpt-4o)"
         elif os.getenv("NVIDIA_API_KEY"):
             provider_name = "NVIDIA (Nemotron-70B)"
-        elif os.getenv("GROQ_API_KEY"):
-            provider_name = "Groq (llama-3.3-70b)"
-        else:
+        elif os.getenv("OPENAI_API_KEY"):
             provider_name = "OpenAI (gpt-4o-mini)"
+        else:
+            provider_name = "Groq (llama-3.3-70b)"
         return EvalResponse(
             final_verdict=result["final_verdict"],
             final_score=result["final_score"],
@@ -292,25 +292,46 @@ async def proxy_chat(request: ProxyChatRequest, x_openai_api_key: Optional[str] 
                 target_model = request.model
         else:
             nvidia_key = os.getenv("NVIDIA_API_KEY")
+            openai_key = os.getenv("OPENAI_API_KEY")
+
             if nvidia_key and nvidia_key.strip():
-                client = OpenAI(api_key=nvidia_key.strip(), base_url="https://integrate.api.nvidia.com/v1")
-                target_model = os.getenv("NVIDIA_MODEL", "nvidia/llama-3.1-nemotron-70b-instruct")
-            elif os.getenv("OPENAI_API_KEY"):
-                client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
-                target_model = request.model
+                try:
+                    nv_client = OpenAI(api_key=nvidia_key.strip(), base_url="https://integrate.api.nvidia.com/v1")
+                    completion = nv_client.chat.completions.create(
+                        model=os.getenv("NVIDIA_MODEL", "nvidia/llama-3.1-nemotron-70b-instruct"),
+                        messages=[{"role": m.role, "content": m.content} for m in request.messages],
+                        temperature=request.temperature,
+                    )
+                    response_text = completion.choices[0].message.content
+                except Exception:
+                    if openai_key and openai_key.strip():
+                        oa_client = OpenAI(api_key=openai_key.strip())
+                        completion = oa_client.chat.completions.create(
+                            model=request.model,
+                            messages=[{"role": m.role, "content": m.content} for m in request.messages],
+                            temperature=request.temperature,
+                        )
+                        response_text = completion.choices[0].message.content
+                    else:
+                        raise
+            elif openai_key and openai_key.strip():
+                oa_client = OpenAI(api_key=openai_key.strip())
+                completion = oa_client.chat.completions.create(
+                    model=request.model,
+                    messages=[{"role": m.role, "content": m.content} for m in request.messages],
+                    temperature=request.temperature,
+                )
+                response_text = completion.choices[0].message.content
             elif os.getenv("GROQ_API_KEY"):
                 client = OpenAI(api_key=os.getenv("GROQ_API_KEY").strip(), base_url="https://api.groq.com/openai/v1")
-                target_model = os.getenv("GROQ_MODEL", "llama-3.3-70b-versatile")
+                completion = client.chat.completions.create(
+                    model=os.getenv("GROQ_MODEL", "llama-3.3-70b-versatile"),
+                    messages=[{"role": m.role, "content": m.content} for m in request.messages],
+                    temperature=request.temperature,
+                )
+                response_text = completion.choices[0].message.content
             else:
-                client = OpenAI(api_key="")
-                target_model = request.model
-
-        completion = client.chat.completions.create(
-            model=target_model,
-            messages=[{"role": m.role, "content": m.content} for m in request.messages],
-            temperature=request.temperature,
-        )
-        response_text = completion.choices[0].message.content
+                raise RuntimeError("No LLM provider key available")
     except Exception as e:
         raise HTTPException(status_code=502, detail=f"LLM call failed: {str(e)}")
 

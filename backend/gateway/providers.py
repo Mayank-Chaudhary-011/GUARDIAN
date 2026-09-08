@@ -41,10 +41,16 @@ def get_llm(custom_api_key: str = None, model_type: str = "eval"):
         )
     
     nvidia_key = os.getenv("NVIDIA_API_KEY")
+    openai_key = os.getenv("OPENAI_API_KEY")
+
+    if nvidia_key and nvidia_key.strip() and openai_key and openai_key.strip():
+        nv = get_nvidia(api_key=nvidia_key.strip(), temperature=0.0)
+        oa = get_openai(api_key=openai_key.strip())
+        return nv.with_fallbacks([oa])
+
     if nvidia_key and nvidia_key.strip():
         return get_nvidia(api_key=nvidia_key.strip(), temperature=0.0)
 
-    openai_key = os.getenv("OPENAI_API_KEY")
     if openai_key and openai_key.strip():
         model = "gpt-4o" if model_type == "primary" else "gpt-4o-mini"
         return ChatOpenAI(
